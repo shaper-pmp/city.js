@@ -190,6 +190,7 @@ function init() {
   document.addEventListener( 'mouseup', onDocumentMouseUp, false ); 
 
   document.addEventListener( 'mousewheel', onDocumentMouseWheel, false ); 
+  document.addEventListener( 'wheel', onDocumentMouseWheel, false ); 
 
   keyboard = new THREEx.KeyboardState();
   dx = 0.0;
@@ -239,13 +240,20 @@ function onDocumentMouseUp( event ) {
 
 function onDocumentMouseWheel(event) {
   event.preventDefault();
-  radius -= event.wheelDelta;
+
+  if(event.deltaY) {
+    radius += event.deltaY*10;
+  }
+  else {
+    radius -= event.wheelDeltaY;
+  }
   camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
   camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
   camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
   camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
   camera.updateMatrix();
   renderer.render( scene, camera );
+  City.buildings[0][0].getTexture();
 }
 
     </script>

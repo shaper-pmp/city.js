@@ -28,7 +28,6 @@ City = {
     this.depth = (this.depth_blocks * this.block.depth) + ((this.depth_blocks-1) * this.road_width);
     
     this.buildings = [];
-    console.log(this.buildings);
     
     for(var x=0; x<this.width; x++) {
       this.buildings.push(new Array(z));
@@ -91,8 +90,6 @@ function Building(max_width, max_depth, max_height) {
 }
 
 Building.prototype.getMesh = function () {
-  //material = new THREE.MeshBasicMaterial( { color: this.colour, wireframe: false } );
-  var material = new THREE.MeshLambertMaterial( { color: this.colour, overdraw: true } );
   var combined = new THREE.Geometry();
   
   for(var i=0; i<this.parts.length; i++) {
@@ -105,6 +102,37 @@ Building.prototype.getMesh = function () {
     THREE.GeometryUtils.merge( combined, mesh );
   }
   
+  var texture = this.getTexture();
+  var material = new THREE.MeshLambertMaterial( { map:texture } );
+  
   finalmesh = new THREE.Mesh( combined, material);
   return finalmesh;
+};
+
+
+Building.prototype.getTexture = function () {
+  // Procedurally generate a texture from a canvas element
+  var canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = "#"+this.colour.toString(16);
+  ctx.fillRect(0, 0, 128, 128);
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#ff0000";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(128, 128);
+  ctx.moveTo(0, 128);
+  ctx.lineTo(128, 0);
+  ctx.stroke();
+
+  var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
+  texture.repeat.x = 2; /* Need to find a way to make the texture tile as if it has a fixed size, rather than stretched/scaled to a multiple of each dimension of the object */
+  texture.repeat.y = 2;
+  texture.needsUpdate = true;
+  return texture;
 };
