@@ -63,12 +63,12 @@ function Building(max_width, max_depth, max_height) {
   var numparts = Math.round(Math.random() * 2)+1;
   //console.log(numparts);
   for(var i=0; i<numparts; i++) {
-    w = Math.round((Math.random() * (max_width*0.6))+(max_width*0.4))-5;
+    w = Math.round((Math.random() * (max_width*0.6))+(max_width*0.4))-10;
     h = Math.round((Math.random() * (max_height*0.5))+(max_height*0.5));
-    d = Math.round((Math.random() * (max_depth*0.6))+(max_depth*0.4))-5;
+    d = Math.round((Math.random() * (max_depth*0.6))+(max_depth*0.4))-10;
     
     x = Math.round((Math.random() * (max_width-10-w)) - ((max_width-10-w)/2));
-    z = Math.round((Math.random() * (max_depth-10-d)) - ((max_depth-10-d)/2));
+    z = Math.round((Math.random() * (max_width-10-d)) - ((max_width-10-d)/2));
     
     this.parts.push({
       width: w,
