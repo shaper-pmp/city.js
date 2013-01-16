@@ -1,0 +1,255 @@
+<!DOCYTPE html>
+<html>
+  <head>
+    <script src="js/jquery-1.8.3.min.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src='js/THREEx.KeyboardState.js'></script>
+    
+    <script src='city.js'></script>
+    
+    <style type-"text/css">
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+}
+    </style>
+  </head>
+  <body>
+    <script>
+
+var camera, scene, renderer;
+var geometry, material, mesh;
+var keyboard;
+
+var dx, dy, dz;
+
+var container, interval,
+camera, scene, renderer,
+projector, plane, cube, linesMaterial,
+ray, brush, objectHovered,
+mouse3D, isMouseDown = false, onMouseDownPosition,
+radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60,
+isShiftDown = false; 
+
+init();
+animate();
+
+function init() {
+
+  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+  camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+  camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
+  camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+  camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  //camera.target.position.y = 0;
+
+  scene = new THREE.Scene();
+  
+  City.init(10, 10);
+  
+  /* Ground */
+  
+  
+  for(var x=0; x<City.width_blocks; x++) {
+    for(var z=0;z<City.depth_blocks; z++) {
+      
+      var building = City.buildings[x][z];
+      
+      /* Building */
+      /*geometry = new THREE.CubeGeometry(building.width, building.height, building.depth);
+      material = new THREE.MeshBasicMaterial( { color: building.colour, wireframe: false } );
+      mesh = new THREE.Mesh( geometry, material );*/
+      
+      mesh = building.getMesh();
+      
+      var blockoffset = City.blockOffsetByIndex(x, z);
+      
+      mesh.translateX(blockoffset.x - (City.width/2));
+      mesh.translateZ(blockoffset.z - (City.depth/2));
+      
+      scene.add( mesh );
+      
+      /* Ground */
+      ground_mesh = new THREE.Mesh(
+                            new THREE.CubeGeometry(City.block.width, 2, City.block.depth),
+                            new THREE.MeshBasicMaterial( { color: 0x808080, wireframe: false } )
+                           );
+      ground_mesh.translateX(blockoffset.x - (City.width/2));
+      ground_mesh.translateZ(blockoffset.z - (City.depth/2));
+      ground_mesh.translateY(0);
+      scene.add( ground_mesh );
+      
+      /* Roads */
+      if(x < City.width_blocks-1) {
+        mesh = new THREE.Mesh(
+                              new THREE.CubeGeometry(City.road_width, 1, City.block.width+(City.road_width*2)),
+                              new THREE.MeshBasicMaterial( { color: 0x303030, wireframe: false } )
+                             );
+        mesh.translateX(blockoffset.x + City.block.width - City.road_width - (City.road_width/2) - (City.width/2));
+        mesh.translateZ(blockoffset.z - (City.depth/2));
+        mesh.translateY(-1);
+        scene.add( mesh );
+      }
+      if(z < City.depth_blocks-1) {
+        mesh = new THREE.Mesh(
+                              new THREE.CubeGeometry(City.block.depth+(City.road_width*2), 1, City.road_width),
+                              new THREE.MeshBasicMaterial( { color: 0x303030, wireframe: false } )
+                             );
+        mesh.translateX(blockoffset.x - (City.width/2));
+        mesh.translateZ(blockoffset.z + City.block.depth - City.road_width - (City.road_width/2) - (City.depth/2));
+        mesh.translateY(-1);
+        scene.add( mesh );
+      }
+      
+      /* Streetlights */
+      
+      if(z != 0 || x != 0) {
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x - (City.block.width/2) - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z - (City.block.depth/2) - (City.depth/2));
+        scene.add(placeholder);
+      }
+      if(z != 0) {        
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z - (City.block.depth/2) - (City.depth/2));
+        scene.add(placeholder);
+      }
+      if(z != 0 || x != City.width_blocks-1) {
+       placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+       placeholder.translateX(blockoffset.x + (City.block.width/2) - (City.width/2));
+       placeholder.translateY(10);
+       placeholder.translateZ(blockoffset.z - (City.block.depth/2) - (City.depth/2));
+       scene.add(placeholder);
+      }
+      
+      if(x != 0) {
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x - (City.block.width/2) - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z - (City.depth/2));
+        scene.add(placeholder);
+      }
+      if(x != City.width_blocks-1) {
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x + (City.block.width/2) - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z - (City.depth/2));
+        scene.add(placeholder);
+      }
+        
+      
+      if(z != City.depth_blocks-1 || x != 0) {
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x - (City.block.width/2) - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z + (City.block.depth/2) - (City.depth/2));
+        scene.add(placeholder);
+      }
+      if(z != City.depth_blocks-1) { 
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z + (City.block.depth/2) - (City.depth/2));
+        scene.add(placeholder);
+      }
+      if(z != City.depth_blocks-1 || x != City.width_blocks-1) {
+        placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+        placeholder.translateX(blockoffset.x + (City.block.width/2) - (City.width/2));
+        placeholder.translateY(10);
+        placeholder.translateZ(blockoffset.z + (City.block.depth/2) - (City.depth/2));
+        scene.add(placeholder);
+      }
+
+    }
+  }
+  
+  // Lights
+
+				var ambient = new THREE.AmbientLight( 0x101010 );
+				scene.add( ambient );
+
+				directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
+				directionalLight.position.set( 100, 50, 10 ).normalize();
+        //directionalLight.castShadow = true;
+        scene.add( directionalLight );
+
+				
+  
+  //renderer = new THREE.CanvasRenderer();
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  
+  onMouseDownPosition = new THREE.Vector2();
+  
+  document.body.appendChild( renderer.domElement );
+  
+  document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+  document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+  document.addEventListener( 'mouseup', onDocumentMouseUp, false ); 
+
+  document.addEventListener( 'mousewheel', onDocumentMouseWheel, false ); 
+
+  keyboard = new THREEx.KeyboardState();
+  dx = 0.0;
+  dy = 0.0;
+  dz = 0.0;  
+}
+
+function animate() {
+  // note: three.js includes requestAnimationFrame shim
+  requestAnimationFrame( animate );
+}
+
+function onDocumentMouseDown( event ) {
+  event.preventDefault();
+  isMouseDown = true;
+  onMouseDownTheta = theta;
+  onMouseDownPhi = phi;
+  onMouseDownPosition.x = event.clientX;
+  onMouseDownPosition.y = event.clientY;
+}
+
+function onDocumentMouseMove( event ) {
+  event.preventDefault();
+  if ( isMouseDown ) {
+    theta = - ( ( event.clientX - onMouseDownPosition.x ) * 0.5 ) + onMouseDownTheta;
+    phi = ( ( event.clientY - onMouseDownPosition.y ) * 0.5 ) + onMouseDownPhi;
+    phi = Math.min( 180, Math.max( 0, phi ) );
+    camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+    camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
+    camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+    camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+    camera.updateMatrix();
+  }
+  renderer.render( scene, camera );
+}
+
+function onDocumentMouseUp( event ) {
+  event.preventDefault();
+  isMouseDown = false;
+  onMouseDownPosition.x = event.clientX - onMouseDownPosition.x;
+  onMouseDownPosition.y = event.clientY - onMouseDownPosition.y;
+  if ( onMouseDownPosition.length() > 5 ) {
+    return;
+  }
+  renderer.render( scene, camera );
+}
+
+function onDocumentMouseWheel(event) {
+  event.preventDefault();
+  radius -= event.wheelDelta;
+  camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+  camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
+  camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+  camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  camera.updateMatrix();
+  renderer.render( scene, camera );
+}
+
+    </script>
+  </body>
+</html>
