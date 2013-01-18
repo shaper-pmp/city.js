@@ -39,15 +39,21 @@
 <h2>Latest changes</h2>
 
 <ul>
+<li>Per-face textures, and a (crappy, placeholder) lighted windows texture</li>
 <li>Buildings are now generated from 1-3 CubeGeometry "parts", for more varied designs (not just monolithic slabs - now we have <em>architecture</em>!).</li>
 <li>Buildings' parts are now also off-centred within each block (by random values proportionate to the dimensions of the part), for more visually-interesting, asymmetrical buildings.</li>
 <li>Rudimentary street-light geometry.</li>
 <li>Mousewheel zoom, as well as the old click+drag rotation.</li>
 <li>Very simple lighting (one DirectionalLight).</li>
+</ul><h2>Known bugs</h2>
+
+<ul>
+<li>Textures are correctly calculated for the first part of each building, but don't appear to be recalculated for each subsequent part, leading to stretching/compressing instead of desired fixed-size tiling effect.</li>
+<li>Graphical glitches when two or more building parts exactly share a vertical/horizontal plane.</li>
 </ul><h2>Future plans</h2>
 
 <ul>
-<li>Procedurally generated random textures.</li>
+<li>Improve procedurally generated random textures.</li>
 <li>White lines on road.</li>
 <li>Better streetlight models, and add downward-pointing SpotLights to each.</li>
 <li>Helicopters with spotlights tracing spline-curve pathways over city, to show off three.js's dynamic lighting.</li>
