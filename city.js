@@ -53,7 +53,7 @@ City = {
 }
 
 function Building(max_width, max_depth, max_height) {
-  var greyscaleval = Math.round(Math.random() * 0x5f) + 40;
+  var greyscaleval = Math.round(Math.random() * 0x3f) + 60;
   var colour = (greyscaleval * 0x100) + greyscaleval;
   colour = (colour * 0x100) + greyscaleval;
   
@@ -102,7 +102,6 @@ Building.prototype.getMesh = function () {
     geometry.faceVertexUvs[0][5] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
     geometry.faceVertexUvs[0][3] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
     geometry.faceVertexUvs[0][1] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
-    
 
     //console.log(geometry);
     
@@ -146,7 +145,6 @@ Building.prototype.getMesh = function () {
     //console.log(texture);
     materials.push(new THREE.MeshLambertMaterial( { color: this.colour, map:texture } ));
   }
-
   
   var finalmesh = new THREE.Mesh( combined, new THREE.MeshFaceMaterial(materials));
   return finalmesh;

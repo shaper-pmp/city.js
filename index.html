@@ -6,6 +6,7 @@
     <script src='js/THREEx.KeyboardState.js'></script>
     
     <script src='city.js'></script>
+    <script src='vehicles.js'></script>
     
     <style type-"text/css">
 body {
@@ -22,15 +23,16 @@ var camera, scene, renderer;
 var geometry, material, mesh;
 var keyboard;
 
-var dx, dy, dz;
-
 var container, interval,
 camera, scene, renderer,
 projector, plane, cube, linesMaterial,
 ray, brush, objectHovered,
 mouse3D, isMouseDown = false, onMouseDownPosition,
 radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60,
-isShiftDown = false; 
+isShiftDown = false;
+
+var heli;
+var autoheli = true;
 
 init();
 animate();
@@ -167,18 +169,21 @@ function init() {
   
   // Lights
 
-				var ambient = new THREE.AmbientLight( 0x101010 );
-				scene.add( ambient );
+  var ambient = new THREE.AmbientLight( 0x202020 );
+  scene.add( ambient );
 
-				directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
-				directionalLight.position.set( 100, 50, 10 ).normalize();
-        //directionalLight.castShadow = true;
-        scene.add( directionalLight );
+  /*directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
+  directionalLight.position.set( 100, 50, 10 ).normalize();
+  //directionalLight.castShadow = true;
+  scene.add( directionalLight );*/
 
 				
   
   //renderer = new THREE.CanvasRenderer();
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.WebGLRenderer({
+    antialias		: true,	// to get smoother output
+  });
+	renderer.shadowMapSoft		= true;
   renderer.setSize( window.innerWidth, window.innerHeight );
   
   onMouseDownPosition = new THREE.Vector2();
@@ -193,15 +198,28 @@ function init() {
   document.addEventListener( 'wheel', onDocumentMouseWheel, false ); 
 
   keyboard = new THREEx.KeyboardState();
-  dx = 0.0;
-  dy = 0.0;
-  dz = 0.0;  
+  
+  heli = new Helicopter(scene);
 }
 
 function animate() {
   // note: three.js includes requestAnimationFrame shim
   requestAnimationFrame( animate );
+  if(autoheli) {
+    heli.step();
+  }
+  renderer.render( scene, camera );
 }
+
+setInterval(function() {
+  if(keyboard.pressed("right")) {
+    autoheli = true;
+  }
+  if(keyboard.pressed("left")) {
+    autoheli = false;
+  }
+  renderer.render( scene, camera );
+}, 100);
 
 function onDocumentMouseDown( event ) {
   event.preventDefault();
@@ -253,8 +271,9 @@ function onDocumentMouseWheel(event) {
   camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
   camera.updateMatrix();
   renderer.render( scene, camera );
-  City.buildings[0][0].getTexture();
 }
+
+
 
     </script>
   </body>
