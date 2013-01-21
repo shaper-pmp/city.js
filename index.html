@@ -17,19 +17,16 @@ body {
     </style>
   </head>
   <body>
-    <script>
+    <script type="text/javascript">
 
 var camera, scene, renderer;
 var geometry, material, mesh;
 var keyboard;
+var camera_target = new THREE.Vector3( 0, 0, 0 );
 
-var container, interval,
-camera, scene, renderer,
-projector, plane, cube, linesMaterial,
-ray, brush, objectHovered,
-mouse3D, isMouseDown = false, onMouseDownPosition,
-radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60,
-isShiftDown = false;
+var camera, scene, renderer,
+isMouseDown = false, onMouseDownPosition,
+radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
 
 var heli;
 var autoheli = true;
@@ -43,7 +40,7 @@ function init() {
   camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
   camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
   camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
-  camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  camera.lookAt(camera_target);
   //camera.target.position.y = 0;
 
   scene = new THREE.Scene();
@@ -218,6 +215,9 @@ setInterval(function() {
   if(keyboard.pressed("left")) {
     autoheli = false;
   }
+  if(keyboard.pressed("up")) {
+    heli.step();
+  }
   renderer.render( scene, camera );
 }, 100);
 
@@ -239,7 +239,7 @@ function onDocumentMouseMove( event ) {
     camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
     camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
     camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
-    camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+    camera.lookAt(camera_target);
     camera.updateMatrix();
   }
   renderer.render( scene, camera );
@@ -268,7 +268,7 @@ function onDocumentMouseWheel(event) {
   camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
   camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
   camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
-  camera.lookAt(new THREE.Vector3( 0, 0, 0 ));
+  camera.lookAt(camera_target);
   camera.updateMatrix();
   renderer.render( scene, camera );
 }
