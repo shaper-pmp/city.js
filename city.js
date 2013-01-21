@@ -144,6 +144,7 @@ Building.prototype.getMesh = function () {
     //console.log("Pushing texture for face %i @ %ix%i:", i, face_width, face_height);
     //console.log(texture);
     materials.push(new THREE.MeshLambertMaterial( { color: this.colour, map:texture } ));
+    face.materialIndex = i; /* And make sure we set the face to use the appropriate materialIndex (merged geometries apparently maintain their original materiaIndex, so without this step all of the building parts' faces only point at the first six textures!) */
   }
   
   var finalmesh = new THREE.Mesh( combined, new THREE.MeshFaceMaterial(materials));
