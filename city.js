@@ -79,13 +79,6 @@ function Building(max_width, max_depth, max_height) {
   }
   
   this.colour = colour;
-  
-  /*var combinedmesh = this.getMesh();
-  combinedmesh.geometry.computeBoundingBox();
-  //console.log(combinedmesh.geometry.boundingBox);
-  this.width = combinedmesh.geometry.boundingBox.max.x;
-  this.height = combinedmesh.geometry.boundingBox.max.y;
-  this.depth = combinedmesh.geometry.boundingBox.max.z;*/
 }
 
 Building.prototype.getMesh = function () {
@@ -124,6 +117,7 @@ Building.prototype.getMesh = function () {
     var face_width = 0;
     var face_height = 0;
     
+    // Vertical surfaces (walls)
     if(Math.abs(face.normal.x) == 1) {
       face_width = Math.abs(combined.vertices[face.a].z - combined.vertices[face.c].z);
     }
@@ -135,6 +129,7 @@ Building.prototype.getMesh = function () {
       var texture = this.getWallTexture(face_width, face_height);
     }
     
+    // Horizontal surfaces (roof)
     if(Math.abs(face.normal.y) == 1) {
       face_width = Math.abs(combined.vertices[face.a].x - combined.vertices[face.c].x);
       face_height = Math.abs(combined.vertices[face.a].z - combined.vertices[face.c].z);
@@ -157,18 +152,14 @@ Building.prototype.getWallTexture = function (width, height) {
   height = height || 256;
   
   // Procedurally generate a texture from a canvas element
-  var canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
+  var concrete_texture = this.getConcreteTexture(width, height, this.colour);
+  var canvas = concrete_texture.image;
   
   var ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = "#"+this.colour.toString(16);
-  ctx.fillRect(0, 0, 256, 256);
-
   //ctx.fillStyle = "#ffd000";
-  for(var i=0; i<256; i=i+5) {
-    for(var j=0; j<256; j=j+10) {
+  for(var i=0; i<width; i=i+5) {
+    for(var j=0; j<height; j=j+10) {
       ctx.fillStyle = "#"+(this.colour-0x0f0f0f).toString(16);
       ctx.fillRect(i-1, j-1, 3, 4);
       ctx.fillStyle = "#"+(this.colour+0x0f0f0f).toString(16);
@@ -192,19 +183,39 @@ Building.prototype.getWallTexture = function (width, height) {
 };
 
 Building.prototype.getRoofTexture = function (width, height) {
-  width = width || 256;
-  height = height || 256;
+  return this.getConcreteTexture(width, height, this.colour);
+};
+
+Building.prototype.getConcreteTexture = function (width, height, colour) {
+  width = width || 128;
+  height = height || 128;
+  colour = colour || this.colour;
   
   // Procedurally generate a texture from a canvas element
   var canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
+  canvas.width = width;
+  canvas.height = height;
   
   var ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = "#"+this.colour.toString(16);
-  ctx.fillRect(0, 0, 256, 256);
-
+  ctx.fillStyle = "#"+colour.toString(16);
+  ctx.fillRect(0, 0, 128, 128);
+  
+  var basegreyscale = parseInt(colour.toString(16).substr(0,2), 16);
+  
+  for(var i=0; i<canvas.width; i++) {
+    for(var j=0; j<canvas.height; j++) {
+      alpha = 0.1;
+    
+      var greyscaleval = Math.round(Math.random() * (0x7f/20)) + basegreyscale;
+      colour = (greyscaleval * 0x100) + greyscaleval;
+      colour = (colour * 0x100) + greyscaleval;
+    
+      ctx.fillStyle = "#"+colour.toString(16);
+      ctx.fillRect(i, j, 1, 1, alpha);
+    }
+  }
+  
   var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
   texture.repeat.x = width/canvas.width; /* Need to find a way to make the texture tile as if it has a fixed size, rather than stretched/scaled to a multiple of each dimension of the object */
   texture.repeat.y = height/canvas.height;
@@ -216,7 +227,7 @@ Building.prototype.getRoofTexture = function (width, height) {
 Building.prototype.getDemoTexture = function (width, height) {
   width = width || 256;
   height = height || 256;
-  
+
   // Procedurally generate a texture from a canvas element
   var canvas = document.createElement('canvas');
   canvas.width = 256;

@@ -70,9 +70,10 @@ function init() {
       scene.add( mesh );
       
       /* Ground */
+      ground_texture = building.getConcreteTexture(City.block.width, City.block.depth, 0x808080);
       ground_mesh = new THREE.Mesh(
                             new THREE.CubeGeometry(City.block.width, 2, City.block.depth),
-                            new THREE.MeshLambertMaterial( { color: 0x808080, wireframe: false } )
+                            new THREE.MeshPhongMaterial( { color: 0x808080, wireframe: false, map:ground_texture } )
                            );
       ground_mesh.translateX(blockoffset.x - (City.width/2));
       ground_mesh.translateZ(blockoffset.z - (City.depth/2));
@@ -84,7 +85,7 @@ function init() {
       if(x < City.width_blocks-1) {
         mesh = new THREE.Mesh(
                               new THREE.CubeGeometry(City.road_width, 1, City.block.width+(City.road_width*2)),
-                              new THREE.MeshLambertMaterial( { color: 0x303030, wireframe: false } )
+                              new THREE.MeshPhongMaterial( { color: 0x303030, wireframe: false } )
                              );
         mesh.translateX(blockoffset.x + City.block.width - City.road_width - (City.road_width/2) - (City.width/2));
         mesh.translateZ(blockoffset.z - (City.depth/2));
@@ -95,7 +96,7 @@ function init() {
       if(z < City.depth_blocks-1) {
         mesh = new THREE.Mesh(
                               new THREE.CubeGeometry(City.block.depth+(City.road_width*2), 1, City.road_width),
-                              new THREE.MeshLambertMaterial( { color: 0x303030, wireframe: false } )
+                              new THREE.MeshPhongMaterial( { color: 0x303030, wireframe: false } )
                              );
         mesh.translateX(blockoffset.x - (City.width/2));
         mesh.translateZ(blockoffset.z + City.block.depth - City.road_width - (City.road_width/2) - (City.depth/2));
