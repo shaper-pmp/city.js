@@ -145,13 +145,9 @@ function init() {
 			}
 			
 			if(x > 0 && z > 0) {
-				var fake_streetlamp = new THREE.PointLight( 0xffd000, 1, 60);
+				/*var fake_streetlamp = new THREE.PointLight( 0xffd000, 1, 60);
 				fake_streetlamp.position.set(blockoffset.x - (City.block.width/2) - (City.road_width/2) - (City.width/2), 5, blockoffset.z - (City.block.depth/2) - (City.road_width/2) - (City.depth/2));
-        /*streetlamp.castShadow = true;
-				streetlamp.shadowDarkness = 0.5;
-				streetlamp.shadowCameraVisible = true;*/
-				
-        scene.add(fake_streetlamp);
+        scene.add(fake_streetlamp);*/
 				
 				/*placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: false }));
         placeholder.translateX(blockoffset.x - (City.block.width/2) - (City.road_width/2) - (City.width/2));
@@ -169,6 +165,11 @@ function init() {
 
   var ambient = new THREE.AmbientLight( 0x202020 );
   scene.add( ambient );
+  
+  var hemiLight = new THREE.HemisphereLight( 0x000000, 0xffd080, 0.25 );
+  hemiLight.position.set( 0, -50, 0 );
+	scene.add( hemiLight );
+
 
   /*directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
   directionalLight.position.set( 100, 50, 10 ).normalize();
