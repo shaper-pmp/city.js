@@ -127,6 +127,8 @@ Building.prototype.getMesh = function () {
     if(Math.abs(face.normal.x) == 1 || Math.abs(face.normal.z) == 1) {
       face_height = Math.abs(combined.vertices[face.a].y - combined.vertices[face.c].y);
       var texture = this.getWallTexture(face_width, face_height);
+      materials.push(new THREE.MeshLambertMaterial( { color: this.colour, map:texture } ));
+    
     }
     
     // Horizontal surfaces (roof)
@@ -134,11 +136,12 @@ Building.prototype.getMesh = function () {
       face_width = Math.abs(combined.vertices[face.a].x - combined.vertices[face.c].x);
       face_height = Math.abs(combined.vertices[face.a].z - combined.vertices[face.c].z);
       var texture = this.getRoofTexture(face_width, face_height);
+      materials.push(new THREE.MeshPhongMaterial( { color: this.colour, map:texture } ));
+    
     }
    
     //console.log("Pushing texture for face %i @ %ix%i:", i, face_width, face_height);
     //console.log(texture);
-    materials.push(new THREE.MeshLambertMaterial( { color: this.colour, map:texture } ));
     face.materialIndex = i; /* And make sure we set the face to use the appropriate materialIndex (merged geometries apparently maintain their original materiaIndex, so without this step all of the building parts' faces only point at the first six textures!) */
   }
   
