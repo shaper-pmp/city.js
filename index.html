@@ -45,7 +45,7 @@ function init() {
 
   scene = new THREE.Scene();
   
-  City.init(5, 5);
+  City.init(scene, 5, 5);
   
   /* Ground */
   
@@ -54,15 +54,11 @@ function init() {
     for(var z=0;z<City.depth_blocks; z++) {
       
       var building = City.buildings[x][z];
-      
-      /* Building */
-      /*geometry = new THREE.CubeGeometry(building.width, building.height, building.depth);
-      material = new THREE.MeshBasicMaterial( { color: building.colour, wireframe: false } );
-      mesh = new THREE.Mesh( geometry, material );*/
 
 			var blockoffset = City.blockOffsetByIndex(x, z);
-			
-      mesh = building.getMesh();
+			      
+      /* Building */
+      mesh = building.getBuildingMesh();
       
       mesh.translateX(blockoffset.x - (City.width/2));
       mesh.translateZ(blockoffset.z - (City.depth/2));
@@ -70,15 +66,11 @@ function init() {
       scene.add( mesh );
       
       /* Ground */
-      ground_texture = building.getConcreteTexture(City.block.width, City.block.depth, 0x808080);
-      ground_mesh = new THREE.Mesh(
-                            new THREE.CubeGeometry(City.block.width, 2, City.block.depth),
-                            new THREE.MeshPhongMaterial( { color: 0x808080, wireframe: false, map:ground_texture } )
-                           );
+      ground_mesh = building.getGroundMesh();
+      
       ground_mesh.translateX(blockoffset.x - (City.width/2));
       ground_mesh.translateZ(blockoffset.z - (City.depth/2));
       ground_mesh.translateY(0);
-			ground_mesh.receiveShadow = true;
       scene.add( ground_mesh );
       
       /* Roads */
