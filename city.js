@@ -1,5 +1,7 @@
 City = {
   
+  scene: null,
+  
   /* City dimensions, in blocks */
   width_blocks: 0,
   depth_blocks: 0,
@@ -20,7 +22,10 @@ City = {
   /* Buildings array */
   buildings: [],
   
-  init: function(width, depth) {
+  init: function(scene, width, depth) {
+    
+    this.scene = scene;
+    
     this.width_blocks = width;
     this.depth_blocks = depth;
     
@@ -46,13 +51,16 @@ City = {
   },
 
   randomBuilding: function() {
-    var newbuilding = new Building(this.block.width, this.block.depth, this.block.height);
+    var newbuilding = new Building(this.scene, this.block.width, this.block.depth, this.block.height);
     //console.log(newbuilding);
     return newbuilding;
   }
 }
 
-function Building(max_width, max_depth, max_height) {
+function Building(scene, max_width, max_depth, max_height) {
+  
+  this.scene = scene;
+  
   var greyscaleval = Math.round(Math.random() * 0x3f) + 60;
   var colour = (greyscaleval * 0x100) + greyscaleval;
   colour = (colour * 0x100) + greyscaleval;
@@ -81,7 +89,7 @@ function Building(max_width, max_depth, max_height) {
   this.colour = colour;
 }
 
-Building.prototype.getMesh = function () {
+Building.prototype.getBuildingMesh = function () {
   var combined = new THREE.Geometry();
   
   var materials = [];
@@ -148,6 +156,16 @@ Building.prototype.getMesh = function () {
   var finalmesh = new THREE.Mesh( combined, new THREE.MeshFaceMaterial(materials));
   return finalmesh;
 };
+
+Building.prototype.getGroundMesh = function () {
+  var ground_texture = this.getConcreteTexture(City.block.width, City.block.depth, 0x808080);
+  var mesh = new THREE.Mesh(
+    new THREE.CubeGeometry(City.block.width, 2, City.block.depth),
+    new THREE.MeshPhongMaterial( { color: 0x808080, wireframe: false, map:ground_texture } )
+  );
+  mesh.receiveShadow = true;
+  return mesh;
+}
 
 
 Building.prototype.getWallTexture = function (width, height) {
