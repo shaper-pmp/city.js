@@ -31,6 +31,8 @@ radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
 var heli;
 var autoheli = true;
 
+var axes = null;
+
 init();
 animate();
 
@@ -45,7 +47,8 @@ function init() {
 
   scene = new THREE.Scene();
   
-  var axes = new THREE.AxisHelper(1000);
+  axes = new THREE.AxisHelper(1000);
+  axes.visible = false;
   scene.add(axes);
   
   City.init(scene, 5, 5);
@@ -208,6 +211,9 @@ setInterval(function() {
   }
   if(keyboard.pressed("up")) {
     heli.step();
+  }
+  if(keyboard.pressed("a")) {
+    axes.visible = !axes.visible;
   }
   renderer.render( scene, camera );
 }, 100);
