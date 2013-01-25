@@ -11,9 +11,9 @@ function Helicopter(scene, showPath, showSpotLightPointer) {
     new THREE.Vector3(-50, 350, 300),
     new THREE.Vector3(-230, 210, -45),
     new THREE.Vector3(-180, 180, -60),
-    new THREE.Vector3(160, 100, -70),
-    new THREE.Vector3(170, 80, -80),
-    new THREE.Vector3(160, 50, -350),
+    new THREE.Vector3(170, 100, -70),
+    new THREE.Vector3(200, 80, -80),
+    new THREE.Vector3(170, 50, -360),
     new THREE.Vector3(-200, 200, -375)    
   ];
   this.routeGeometry = new THREE.Geometry();
