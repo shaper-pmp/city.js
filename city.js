@@ -10,9 +10,9 @@ City = {
   /* Element dimensions */
   road_width: 25,
   block: {
-    width: 100,
-    height: 200,
-    depth: 100
+    width: 110,
+    height: 196,
+    depth: 110
   },
   
   /* Calculated dimensions */
@@ -34,9 +34,9 @@ City = {
     
     this.buildings = [];
     
-    for(var x=0; x<this.width; x++) {
+    for(var x=0; x<this.width_blocks; x++) {
       this.buildings.push(new Array(z));
-      for(var z=0;z<this.depth; z++) {
+      for(var z=0;z<this.depth_blocks; z++) {
         this.buildings[x][z] = this.randomBuilding();
       }
     }
@@ -60,6 +60,10 @@ City = {
 function Building(scene, max_width, max_depth, max_height) {
   
   this.scene = scene;
+  this.pavement_width = 5;
+  this.min_part_width = 0.6;
+  this.min_part_height = 0.5;
+  this.min_part_depth = 0.6;
   
   var greyscaleval = Math.round(Math.random() * 0x3f) + 60;
   var colour = (greyscaleval * 0x100) + greyscaleval;
@@ -67,14 +71,32 @@ function Building(scene, max_width, max_depth, max_height) {
   
   this.parts = [];
   
+  this.avail_width = max_width-(this.pavement_width*2); // Width/depth minus space for pavement
+  this.avail_depth = max_depth-(this.pavement_width*2);
+  
   var numparts = Math.round(Math.random() * 2)+1;
   for(var i=0; i<numparts; i++) {
-    w = Math.round((Math.random() * (max_width*0.6))+(max_width*0.4))-10;
-    h = Math.round((Math.random() * (max_height*0.5))+(max_height*0.5));
-    d = Math.round((Math.random() * (max_depth*0.6))+(max_depth*0.4))-10;
     
-    x = Math.round((Math.random() * (max_width-10-w)) - ((max_width-10-w)/2));
-    z = Math.round((Math.random() * (max_width-10-d)) - ((max_width-10-d)/2));
+    w = Math.round((Math.random() * (this.avail_width*this.min_part_width))+(this.avail_width*(1-this.min_part_width)));
+    h = Math.round((Math.random() * (max_height*this.min_part_height))+(max_height*(1-this.min_part_height)));
+    d = Math.round((Math.random() * (this.avail_depth*this.min_part_depth))+(this.avail_depth*(1-this.min_part_depth)));
+    
+    // Block width is 110, pavement width is 5, so available width is 100 (block_width-(pavement_width*2))
+    // Texture repeats horizontally every 10px, and vertically every 7px
+    // So, to get textures to line up clamp values to nearest 1/10th of the available width and 1/7th of available height
+  
+    w = Math.round(w/10) * 10;
+    h = Math.round(h/7) * 7;
+    d = Math.round(d/10) * 10;
+    
+    remaining_x = this.avail_width-w;
+    remaining_z = this.avail_depth-d;
+    //offset_x = 
+    x = Math.round((Math.random() * remaining_x) - (remaining_x/2));
+    z = Math.round((Math.random() * remaining_z) - (remaining_z/2));
+    
+    x = (x > 0 ? Math.floor(x/10) : Math.ceil(x/10)) * 10;  // Don't Math.round() because that may end up rounding *up*, which (if the building is already near the max offset) can increase offset even further so it overlaps the pavement
+    z = (z > 0 ? Math.floor(z/10) : Math.ceil(z/10)) * 10;
     
     this.parts.push({
       width: w,
@@ -179,7 +201,7 @@ Building.prototype.getWallTexture = function (width, height) {
   var ctx = canvas.getContext('2d');
 
   //ctx.fillStyle = "#ffd000";
-  for(var i=0; i<width; i=i+5) {
+/*  for(var i=0; i<width; i=i+5) {
     for(var j=0; j<height; j=j+10) {
       ctx.fillStyle = "#"+(this.colour-0x0f0f0f).toString(16);
       ctx.fillRect(i-1, j-1, 3, 4);
@@ -192,6 +214,25 @@ Building.prototype.getWallTexture = function (width, height) {
         ctx.fillStyle = "#"+(this.colour-0x1f1f1f).toString(16);
       }
       ctx.fillRect(i, j, 2, 3);
+    }
+  }*/
+
+  for(var i=0; i<width; i=i+10) {
+    for(var j=0; j<height; j=j+7) {
+      ctx.fillStyle = "#"+(this.colour+0x0f0f0f).toString(16);
+      ctx.fillRect(i, j+1, 3, 4);
+      ctx.fillRect(i+5, j+1, 3, 4);
+      ctx.fillStyle = "#"+(this.colour-0x0f0f0f).toString(16);
+      ctx.fillRect(i+1, j+2, 3, 4);
+      ctx.fillRect(i+6, j+2, 3, 4);
+      if(Math.round(Math.random() * 4) == 1) {
+          ctx.fillStyle = "#ffd000";
+      }
+      else {
+        ctx.fillStyle = "#"+(this.colour-0x1f1f1f).toString(16);
+      }
+      ctx.fillRect(i+1, j+2, 2, 3);
+      ctx.fillRect(i+6, j+2, 2, 3);
     }
   }
   
