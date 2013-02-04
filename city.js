@@ -70,6 +70,7 @@ function Building(scene, max_width, max_depth, max_height) {
   colour = (colour * 0x100) + greyscaleval;
   
   this.parts = [];
+  this.partMeshes = [];
   
   this.avail_width = max_width-(this.pavement_width*2); // Width/depth minus space for pavement
   this.avail_depth = max_depth-(this.pavement_width*2);
@@ -98,14 +99,33 @@ function Building(scene, max_width, max_depth, max_height) {
     x = (x > 0 ? Math.floor(x/10) : Math.ceil(x/10)) * 10;  // Don't Math.round() because that may end up rounding *up*, which (if the building is already near the max offset) can increase offset even further so it overlaps the pavement
     z = (z > 0 ? Math.floor(z/10) : Math.ceil(z/10)) * 10;
     
-    this.parts.push({
+    var part = {
       width: w,
       height: h,
       depth: d,
       x: x,
       y: h/2,
       z: z
-    });
+    };
+    
+    this.parts.push(part);
+  }
+  
+  for(var i=0; i<this.parts.length; i++) {
+    part = this.parts[i];
+    
+    var geometry = new THREE.CubeGeometry(part.width, part.height, part.depth);
+    geometry.faceVertexUvs[0][5] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
+    geometry.faceVertexUvs[0][3] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
+    geometry.faceVertexUvs[0][1] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
+
+    var mesh = new THREE.Mesh(geometry);
+
+    mesh.translateX(part.x);
+    mesh.translateZ(part.z);
+    mesh.translateY(part.y);
+    
+    this.partMeshes.push(mesh);
   }
   
   this.colour = colour;
@@ -116,23 +136,8 @@ Building.prototype.getBuildingMesh = function () {
   
   var materials = [];
   
-  //console.log("Numparts: %i", this.parts.length);
-  for(var i=0; i<this.parts.length; i++) {
-    part = this.parts[i];
-    
-    var geometry = new THREE.CubeGeometry(part.width, part.height, part.depth);
-    //console.log(geometry.faceVertexUvs[0]);
-    geometry.faceVertexUvs[0][5] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
-    geometry.faceVertexUvs[0][3] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
-    geometry.faceVertexUvs[0][1] = [new THREE.Vector2(1, 1), new THREE.Vector2(1, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 1)];
-
-    //console.log(geometry);
-    
-    var mesh = new THREE.Mesh(geometry);
-
-    mesh.translateX(part.x);
-    mesh.translateZ(part.z);
-    mesh.translateY(part.y);
+  for(var i=0; i<this.partMeshes.length; i++) {
+    mesh = this.partMeshes[i];
     
     THREE.GeometryUtils.merge( combined, mesh );
   }
