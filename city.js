@@ -142,7 +142,23 @@ Building.prototype.getBuildingMesh = function () {
     THREE.GeometryUtils.merge( combined, mesh );
   }
 
-  //console.log(combined.vertices);
+  console.log(combined);
+  
+  for(var i=0; i<combined.faces.length; i++) {    // Compare every face
+    var f1 = combined.faces[i];
+    for(var j=0; j<combined.faces.length; j++) {  // to every other face
+      var f2 = combined.faces[j];
+      if(i != j && f1.normal.x == f2.normal.x && f1.normal.y == f2.normal.y && f1.normal.z == f2.normal.z) {  // Find faces on the same sides of different parts (N/E/W/S/top/bottom)
+        for(var d=0; d<3; d++) {
+          var dim = ['x', 'y', 'z'][d];
+          if(f1.normal[dim] == 1 && combined.vertices[f1.a][dim] == combined.vertices[f2.a][dim]) { // Check they're in the same plane
+            console.log("Candidate overlap faces ("+dim+"):",f1, f2);
+            // Find overlap
+          }
+        }
+      }
+    }
+  }
   
   for(var i=0; i<combined.faces.length; i++) {
     var face = combined.faces[i];
