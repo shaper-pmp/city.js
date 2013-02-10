@@ -51,7 +51,7 @@ function init() {
   axes.visible = false;
   scene.add(axes);
   
-  City.init(scene, 1, 1);
+  City.init(scene, 5, 5);
   
   for(var x=0; x<City.width_blocks; x++) {
     for(var z=0;z<City.depth_blocks; z++) {
@@ -84,7 +84,7 @@ function init() {
                              );
         mesh.translateX(blockoffset.x + (City.block.width/2) + (City.road_width/2) - (City.width/2));
         mesh.translateZ(blockoffset.z - (City.depth/2));
-        mesh.translateY(-1);
+        mesh.translateY(-0.5);
 				mesh.receiveShadow = true;
         scene.add( mesh );
       }
@@ -95,7 +95,7 @@ function init() {
                              );
         mesh.translateX(blockoffset.x - (City.width/2));
         mesh.translateZ(blockoffset.z + (City.block.depth/2) + (City.road_width/2) - (City.depth/2));
-        mesh.translateY(-1);
+        mesh.translateY(-0.5);
 				mesh.receiveShadow = true;
         scene.add( mesh );
       }
