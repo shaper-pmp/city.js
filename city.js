@@ -111,6 +111,26 @@ function Building(scene, max_width, max_depth, max_height) {
     this.parts.push(part);
   }
   
+  /*this.parts = [
+    {
+      width: 80,
+      height: 154,
+      depth: 80,
+      x: 0,
+      y: 77,
+      z: -10
+    }, {
+      width: 80,
+      height: 168,
+      depth: 100,
+      x: 0,
+      y: 84,
+      z: 0
+    }
+  ];*/
+  
+  //console.log(this.parts);
+  
   for(var i=0; i<this.parts.length; i++) {
     part = this.parts[i];
     
@@ -142,18 +162,79 @@ Building.prototype.getBuildingMesh = function () {
     THREE.GeometryUtils.merge( combined, mesh );
   }
 
-  console.log(combined);
+  //console.log(combined);
   
   for(var i=0; i<combined.faces.length; i++) {    // Compare every face
     var f1 = combined.faces[i];
-    for(var j=0; j<combined.faces.length; j++) {  // to every other face
+    for(var j=i+1; j<combined.faces.length; j++) {  // to every other face
       var f2 = combined.faces[j];
-      if(i != j && f1.normal.x == f2.normal.x && f1.normal.y == f2.normal.y && f1.normal.z == f2.normal.z) {  // Find faces on the same sides of different parts (N/E/W/S/top/bottom)
+      if(f1.normal.x == f2.normal.x && f1.normal.y == f2.normal.y && f1.normal.z == f2.normal.z) {  // Find faces on the same sides of different parts (N/E/W/S/top/bottom)
         for(var d=0; d<3; d++) {
           var dim = ['x', 'y', 'z'][d];
-          if(f1.normal[dim] == 1 && combined.vertices[f1.a][dim] == combined.vertices[f2.a][dim]) { // Check they're in the same plane
-            console.log("Candidate overlap faces ("+dim+"):",f1, f2);
-            // Find overlap
+          if(Math.abs(f1.normal[dim]) == 1 && combined.vertices[f1.a][dim] == combined.vertices[f2.a][dim]) { // Check they're in the same plane
+            if(dim == 'x') {
+              var otherdim = 'z';
+            }
+            else if(dim == 'z') {
+              var otherdim = 'x';
+            }
+            var f1_dim_vals = [combined.vertices[f1.a][otherdim], combined.vertices[f1.b][otherdim], combined.vertices[f1.c][otherdim], combined.vertices[f1.d][otherdim]];
+            var f2_dim_vals = [combined.vertices[f2.a][otherdim], combined.vertices[f2.b][otherdim], combined.vertices[f2.c][otherdim], combined.vertices[f2.d][otherdim]];
+            var f1_max = Math.max.apply(null, f1_dim_vals);
+            var f1_min = Math.min.apply(null, f1_dim_vals);
+            var f2_max = Math.max.apply(null, f2_dim_vals);
+            var f2_min = Math.min.apply(null, f2_dim_vals);
+            
+            //console.log("Candidate overlap faces ("+dim+"):", f1_dim_vals, f2_dim_vals);
+            //console.log("Edges ("+otherdim+"):", f1_min, f1_max, f2_min, f2_max);
+            
+            if((f1_max >= f2_min && f2_max >= f1_min) || (f2_max >= f1_min && f1_max >= f2_min)) {  // Find overlap
+              //console.log("Overlap found!", dim ,f1, f2);
+              
+              if(dim == 'x' || dim == 'z') {  // Vertical faces are overlapping (walls)
+                var f1_height = Math.max.apply(null, [combined.vertices[f1.a].y, combined.vertices[f1.b].y, combined.vertices[f1.c].y, combined.vertices[f1.d].y]);
+                var f2_height = Math.max.apply(null, [combined.vertices[f2.a].y, combined.vertices[f2.b].y, combined.vertices[f2.c].y, combined.vertices[f2.d].y]);
+                if(f1_min <= f2_min && f1_max >= f2_max)  { // f2 is inside f1
+                  if(f1_height >= f2_height) { // f2 is completely inside f1, so just delete the whole face f2
+                    combined.faces.splice(j,1);
+                    j--;
+                  }
+                  else {  // f2 poking through f1's top
+                    combined = this.moveFaceEdgeTo(combined, j, 'y', 0, f1_height);
+                  }
+                }
+                else if(f2_min <= f1_min && f2_max >= f1_max)  { // f1 is inside f2
+                  if(f2_height >= f1_height) { // f1 is completely inside f2, so just delete the whole face f1
+                    combined.faces.splice(i,1);
+                    i--;
+                  }
+                  else {  // f1 poking through f2's top
+                    combined = this.moveFaceEdgeTo(combined, i, 'y', 0, f2_height);
+                  }
+                }
+                else {  // side overlap
+                  if(f1_max >= f2_max && f1_min >= f2_min) {  // f1 is on the right
+                    if(f1_height >= f2_height) {  // f1 is taller
+                      combined = this.moveFaceEdgeTo(combined, j, otherdim, f2_max, f1_min);
+                    }
+                    else {  // f2 is taller
+                      combined = this.moveFaceEdgeTo(combined, i, otherdim, f1_min, f2_max);
+                    }
+                  }
+                  else if(f1_max <= f2_max && f1_min <= f2_min) { // f2 is on the right
+                    if(f1_height >= f2_height) {  // f1 is taller
+                      combined = this.moveFaceEdgeTo(combined, j, otherdim, f2_min, f1_max);
+                    }
+                    else {  // f2 is taller
+                      combined = this.moveFaceEdgeTo(combined, i, otherdim, f1_max, f2_min);
+                    }
+                  }
+                }
+              }
+              else {  // Horizontal faces overlapping (floor/ceiling)
+                
+              }
+            }
           }
         }
       }
@@ -198,6 +279,26 @@ Building.prototype.getBuildingMesh = function () {
   
   var finalmesh = new THREE.Mesh( combined, new THREE.MeshFaceMaterial(materials));
   return finalmesh;
+};
+
+Building.prototype.moveFaceEdgeTo = function (mesh, faceindex, dim, source, target) {
+  var face = mesh.faces[faceindex];
+  var vertex_labels = ['a','b','c','d'];
+  
+  for(var v=0; v<vertex_labels.length; v++) {
+    var vertex_label = vertex_labels[v];
+    var vertex = mesh.vertices[face[vertex_label]];
+    if(vertex[dim] == source) {
+      //console.log(vertex_label, vertex);
+      var newvertex = new THREE.Vector3(vertex.x,vertex.y,vertex.z);
+      newvertex[dim] = target;
+      var newindex = mesh.vertices.push(newvertex)-1;
+      //console.log("Reassigning face's vertex", vertex_label, dim, "from vertex", face[vertex_label], mesh.vertices[face[vertex_label]], "to vertex", newindex, newvertex);
+      face[vertex_label] = newindex;
+    }
+  }
+  
+  return mesh;
 };
 
 Building.prototype.getGroundMesh = function () {
