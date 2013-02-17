@@ -33,6 +33,10 @@ var autoheli = true;
 
 var axes = null;
 
+var ambientLight = null;
+var directionalLight = null;
+var hemiLight = null;
+
 init();
 animate();
 
@@ -80,7 +84,7 @@ function init() {
       if(x < City.width_blocks-1) {
         mesh = new THREE.Mesh(
                               new THREE.CubeGeometry(City.road_width, 1, City.block.width+(City.road_width*2)),
-                              new THREE.MeshPhongMaterial( { color: 0x303030, wireframe: false } )
+                              new THREE.MeshPhongMaterial( { color: 0x101010, wireframe: false } )
                              );
         mesh.translateX(blockoffset.x + (City.block.width/2) + (City.road_width/2) - (City.width/2));
         mesh.translateZ(blockoffset.z - (City.depth/2));
@@ -91,7 +95,7 @@ function init() {
       if(z < City.depth_blocks-1) {
         mesh = new THREE.Mesh(
                               new THREE.CubeGeometry(City.block.depth+(City.road_width*2), 1, City.road_width),
-                              new THREE.MeshPhongMaterial( { color: 0x303030, wireframe: false } )
+                              new THREE.MeshPhongMaterial( { color: 0x101010, wireframe: false } )
                              );
         mesh.translateX(blockoffset.x - (City.width/2));
         mesh.translateZ(blockoffset.z + (City.block.depth/2) + (City.road_width/2) - (City.depth/2));
@@ -105,34 +109,34 @@ function init() {
 			var streetlights = [];
 			
       if(z != 0 || x != 0) {
-        streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2)]);
+        streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
       }
       if(z != 0) {
-				streetlights.push([blockoffset.x - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2)]);
+				streetlights.push([blockoffset.x - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2), 1, 1, 2]);
       }
       if(z != 0 || x != City.width_blocks-1) {
-				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2)]);
+				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
       }
       
       if(x != 0) {
-				streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.depth/2)]);
+				streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.depth/2), 2, 1, 1]);
       }
       if(x != City.width_blocks-1) {
-				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.depth/2)]);
+				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.depth/2), 2, 1, 1]);
       }
         
       if(z != City.depth_blocks-1 || x != 0) {
-				streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2)]);
+				streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
       }
       if(z != City.depth_blocks-1) {
-				streetlights.push([blockoffset.x - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2)]);
+				streetlights.push([blockoffset.x - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2), 1, 1, 2]);
       }
       if(z != City.depth_blocks-1 || x != City.width_blocks-1) {
-				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2)]);
+				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
       }
 			
 			for(var i=0; i<streetlights.length; i++) {
-				placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+				placeholder = new THREE.Mesh(new THREE.CubeGeometry(streetlights[i][3], streetlights[i][4], streetlights[i][5]), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
         placeholder.translateX(streetlights[i][0]);
         placeholder.translateY(streetlights[i][1]);
         placeholder.translateZ(streetlights[i][2]);
@@ -158,17 +162,18 @@ function init() {
   
   // Lights
 
-  var ambient = new THREE.AmbientLight( 0x202020 );
-  scene.add( ambient );
+  ambientLight = new THREE.AmbientLight( 0x202020 );
+  scene.add( ambientLight );
   
-  var hemiLight = new THREE.HemisphereLight( 0x000000, 0xffd080, 0.25 );
-  hemiLight.position.set( 0, -50, 0 );
-	scene.add( hemiLight );
-
-
   directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
   directionalLight.position.set( 100, 50, 10 ).normalize();
   scene.add( directionalLight );
+  
+  hemiLight = new THREE.HemisphereLight(0x000000, 0xffd000, 0.4);
+  /*hemiLight.color = 0xff0000;;
+  hemiLight.groundColor = 0xffd000;*/
+  hemiLight.position.set(0, 10, 0);
+  scene.add(hemiLight); 
   
   //renderer = new THREE.CanvasRenderer();
   renderer = new THREE.WebGLRenderer({
@@ -214,6 +219,23 @@ setInterval(function() {
   }
   if(keyboard.pressed("a")) {
     axes.visible = !axes.visible;
+  }
+  if(keyboard.pressed("1")) {
+    ambientLight.visible = !ambientLight.visible;
+  }
+  if(keyboard.pressed("2")) {
+    directionalLight.visible = !directionalLight.visible;
+  }
+  if(keyboard.pressed("3")) {
+    hemiLight.visible = !hemiLight.visible;
+  }
+  if(keyboard.pressed("w")) {
+    hemiLight.position.set(0, hemiLight.position.y+10, 0);
+    console.log(hemiLight.position.y);
+  }
+  if(keyboard.pressed("s")) {
+    hemiLight.position.set(0, hemiLight.position.y-10, 0);
+    console.log(hemiLight.position.y);
   }
   renderer.render( scene, camera );
 }, 100);
