@@ -54,8 +54,37 @@ City = {
     var newbuilding = new Building(this.scene, this.block.width, this.block.depth, this.block.height);
     //console.log(newbuilding);
     return newbuilding;
+  },
+
+  getStreetlightMesh: function (position, rotation) {
+    var light = new THREE.Mesh(new THREE.CubeGeometry(2, 0.5, 1), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
+    light.translateY(10);
+    var stand_top = new THREE.Mesh(new THREE.CubeGeometry(4, 0.5, 1), new THREE.MeshLambertMaterial( { color: 0x404040, wireframe: false }));
+    stand_top.translateY(10.5);
+    stand_top.translateX(1);
+    var stand_body = new THREE.Mesh(new THREE.CubeGeometry(0.5, 10.5, 0.5), new THREE.MeshLambertMaterial( { color: 0x404040, wireframe: false }));
+    stand_body.translateY(5.25);
+    stand_body.translateX(2.75);
+    
+    var streetlight = new THREE.Object3D();
+    streetlight.add(light);
+    streetlight.add(stand_top);
+    streetlight.add(stand_body);
+    
+    if(position) {
+      streetlight.translateX(position.x);
+      streetlight.translateY(position.y);
+      streetlight.translateZ(position.z);
+    }
+    if(rotation) {
+      streetlight.rotation.setX(rotation.x);
+      streetlight.rotation.setY(rotation.y);
+      streetlight.rotation.setZ(rotation.z);
+    }
+    return streetlight;
   }
-}
+};
+
 
 function Building(scene, max_width, max_depth, max_height) {
   
@@ -149,7 +178,7 @@ function Building(scene, max_width, max_depth, max_height) {
   }
   
   this.colour = colour;
-}
+};
 
 Building.prototype.getBuildingMesh = function () {
   var combined = new THREE.Geometry();
@@ -309,8 +338,7 @@ Building.prototype.getGroundMesh = function () {
   );
   mesh.receiveShadow = true;
   return mesh;
-}
-
+};
 
 Building.prototype.getWallTexture = function (width, height) {
   width = width || 256;

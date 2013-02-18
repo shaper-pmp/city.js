@@ -109,37 +109,61 @@ function init() {
 			var streetlights = [];
 			
       if(z != 0 || x != 0) {
-        streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
+        streetlights.push([
+          new THREE.Vector3(blockoffset.x - (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.block.depth/2) - (City.depth/2)),
+          new THREE.Vector3(0, -Math.PI/4, 0)
+        ]);
       }
       if(z != 0) {
-				streetlights.push([blockoffset.x - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2), 1, 1, 2]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x - (City.width/2), 0, blockoffset.z - (City.block.depth/2) - (City.depth/2)),
+          new THREE.Vector3(0, -Math.PI/2, 0)
+        ]);
       }
       if(z != 0 || x != City.width_blocks-1) {
-				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x + (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.block.depth/2) - (City.depth/2)),
+          new THREE.Vector3(0, -Math.PI*3/4, 0)
+        ]);
       }
       
       if(x != 0) {
-				streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.depth/2), 2, 1, 1]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x - (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.depth/2)),
+          new THREE.Vector3(0, 0, 0)
+        ]);
       }
       if(x != City.width_blocks-1) {
-				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z - (City.depth/2), 2, 1, 1]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x + (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.depth/2)),
+          new THREE.Vector3(0, Math.PI, 0)
+        ]);
       }
         
       if(z != City.depth_blocks-1 || x != 0) {
-				streetlights.push([blockoffset.x - (City.block.width/2) - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x - (City.block.width/2) - (City.width/2), 0, blockoffset.z + (City.block.depth/2) - (City.depth/2)),
+          new THREE.Vector3(0, Math.PI/4, 0)
+        ]);
       }
       if(z != City.depth_blocks-1) {
-				streetlights.push([blockoffset.x - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2), 1, 1, 2]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x - (City.width/2), 0, blockoffset.z + (City.block.depth/2) - (City.depth/2)),
+          new THREE.Vector3(0, Math.PI/2, 0)
+        ]);
       }
       if(z != City.depth_blocks-1 || x != City.width_blocks-1) {
-				streetlights.push([blockoffset.x + (City.block.width/2) - (City.width/2), 10, blockoffset.z + (City.block.depth/2) - (City.depth/2), 2, 2, 2]);
+				streetlights.push([
+          new THREE.Vector3(blockoffset.x + (City.block.width/2) - (City.width/2), 0, blockoffset.z + (City.block.depth/2) - (City.depth/2)),
+          new THREE.Vector3(0, Math.PI*3/4, 0)
+        ]);
       }
 			
 			for(var i=0; i<streetlights.length; i++) {
-				placeholder = new THREE.Mesh(new THREE.CubeGeometry(streetlights[i][3], streetlights[i][4], streetlights[i][5]), new THREE.MeshBasicMaterial( { color: 0xffd000, wireframe: false }));
-        placeholder.translateX(streetlights[i][0]);
-        placeholder.translateY(streetlights[i][1]);
-        placeholder.translateZ(streetlights[i][2]);
+				placeholder = City.getStreetlightMesh(
+          streetlights[i][0],
+          streetlights[i][1]
+        );
         scene.add(placeholder);
 			}
 			
@@ -162,7 +186,7 @@ function init() {
   
   // Lights
 
-  ambientLight = new THREE.AmbientLight( 0x202020 );
+  ambientLight = new THREE.AmbientLight( 0x101010 );
   scene.add( ambientLight );
   
   directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
