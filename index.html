@@ -30,6 +30,7 @@ radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
 
 var heli;
 var autoheli = true;
+var helicam = false;
 
 var axes = null;
 
@@ -228,10 +229,20 @@ function animate() {
   if(autoheli) {
     heli.step();
   }
+  if(helicam) {
+    camera.position.x = heli.position.x;
+    camera.position.y = heli.position.y;
+    camera.position.z = heli.position.z;
+    camera_target = heli.route[(heli.destination+2)%heli.route.length];
+    camera.lookAt(camera_target);
+  }
+  
   renderer.render( scene, camera );
 }
 
 setInterval(function() {
+  
+  // Helicopter on/off/stepping
   if(keyboard.pressed("right")) {
     autoheli = true;
   }
@@ -241,9 +252,22 @@ setInterval(function() {
   if(keyboard.pressed("up")) {
     heli.step();
   }
+  
+  // Helicam
+  if(keyboard.pressed("h")) {
+    helicam = !helicam;
+    heli.model.visible = !heli.model.visible;
+    if(!helicam) {
+      camera_target = new THREE.Vector3(0,0,0);
+    }
+  }
+  
+  // Axes visible
   if(keyboard.pressed("a")) {
     axes.visible = !axes.visible;
   }
+  
+  // Light toggles
   if(keyboard.pressed("1")) {
     ambientLight.visible = !ambientLight.visible;
   }
@@ -253,29 +277,24 @@ setInterval(function() {
   if(keyboard.pressed("3")) {
     hemiLight.visible = !hemiLight.visible;
   }
-  if(keyboard.pressed("w")) {
-    hemiLight.position.set(0, hemiLight.position.y+10, 0);
-    console.log(hemiLight.position.y);
-  }
-  if(keyboard.pressed("s")) {
-    hemiLight.position.set(0, hemiLight.position.y-10, 0);
-    console.log(hemiLight.position.y);
-  }
+  
   renderer.render( scene, camera );
 }, 100);
 
 function onDocumentMouseDown( event ) {
   event.preventDefault();
-  isMouseDown = true;
-  onMouseDownTheta = theta;
-  onMouseDownPhi = phi;
-  onMouseDownPosition.x = event.clientX;
-  onMouseDownPosition.y = event.clientY;
+  if(!helicam) {
+    isMouseDown = true;
+    onMouseDownTheta = theta;
+    onMouseDownPhi = phi;
+    onMouseDownPosition.x = event.clientX;
+    onMouseDownPosition.y = event.clientY;
+  }
 }
 
 function onDocumentMouseMove( event ) {
   event.preventDefault();
-  if ( isMouseDown ) {
+  if ( isMouseDown && !helicam) {
     theta = - ( ( event.clientX - onMouseDownPosition.x ) * 0.5 ) + onMouseDownTheta;
     phi = ( ( event.clientY - onMouseDownPosition.y ) * 0.5 ) + onMouseDownPhi;
     phi = Math.min( 180, Math.max( 0, phi ) );
@@ -290,11 +309,13 @@ function onDocumentMouseMove( event ) {
 
 function onDocumentMouseUp( event ) {
   event.preventDefault();
-  isMouseDown = false;
-  onMouseDownPosition.x = event.clientX - onMouseDownPosition.x;
-  onMouseDownPosition.y = event.clientY - onMouseDownPosition.y;
-  if ( onMouseDownPosition.length() > 5 ) {
-    return;
+  if(!helicam) {
+    isMouseDown = false;
+    onMouseDownPosition.x = event.clientX - onMouseDownPosition.x;
+    onMouseDownPosition.y = event.clientY - onMouseDownPosition.y;
+    if ( onMouseDownPosition.length() > 5 ) {
+      return;
+    }
   }
   renderer.render( scene, camera );
 }
@@ -302,17 +323,19 @@ function onDocumentMouseUp( event ) {
 function onDocumentMouseWheel(event) {
   event.preventDefault();
 
-  if(event.deltaY) {
-    radius += event.deltaY*10;
+  if(!helicam) {
+    if(event.deltaY) {
+      radius += event.deltaY*10;
+    }
+    else {
+      radius -= event.wheelDeltaY;
+    }
+    camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+    camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
+    camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+    camera.lookAt(camera_target);
+    camera.updateMatrix();
   }
-  else {
-    radius -= event.wheelDeltaY;
-  }
-  camera.position.x = radius * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
-  camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
-  camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
-  camera.lookAt(camera_target);
-  camera.updateMatrix();
   renderer.render( scene, camera );
 }
 
