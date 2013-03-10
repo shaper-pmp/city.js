@@ -1,11 +1,11 @@
-### City.js
+## City.js
 Demo of a random, procedurally-generated cityscape (work-in-progress).
 
-## Demo
+### Demo
 
 [Click here for the demo](http://htmlpreview.github.com/?https://github.com/shaper-pmp/city.js/blob/master/index.html), served straight out of the GitHub repo trunk.
 
-## Latest changes
+### Latest changes
 
 * Helicam added - press 'h' to toggle.
 * Helicopter orientation now also linearly interpolated (for smooth changes of orientation when following spline path).
@@ -13,11 +13,11 @@ Demo of a random, procedurally-generated cityscape (work-in-progress).
 * Simple face-intersection detection and resolution - now vertical faces should no longer overlap and cause texture-flickering.
 * Helicopter/searchlight (traces a predefined spline-curve path around the city to show off dynamic lighting - left arrow key pauses flight, right arrow key resumes).
 
-## Known bugs
+### Known bugs
 
 * *None*
 
-## Future plans
+### Future plans
 
 * Improve procedurally generated random textures.
 * White lines on road.
