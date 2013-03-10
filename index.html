@@ -23,13 +23,14 @@ var camera, scene, renderer;
 var geometry, material, mesh;
 var keyboard;
 var camera_target = new THREE.Vector3( 0, 0, 0 );
+var camera_oldpos = null;
 
 var camera, scene, renderer,
 isMouseDown = false, onMouseDownPosition,
 radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
 
 var heli;
-var autoheli = true;
+var autoheli = false;
 var helicam = false;
 
 var axes = null;
@@ -48,8 +49,7 @@ function init() {
   camera.position.y = radius * Math.sin( phi * Math.PI / 360 );
   camera.position.z = radius * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
   camera.lookAt(camera_target);
-  //camera.target.position.y = 0;
-
+  
   scene = new THREE.Scene();
   
   axes = new THREE.AxisHelper(1000);
@@ -223,18 +223,20 @@ function init() {
   heli = new Helicopter(scene, false);
 }
 
+
 function animate() {
   // note: three.js includes requestAnimationFrame shim
   requestAnimationFrame( animate );
   if(autoheli) {
     heli.step();
   }
+  
   if(helicam) {
-    camera.position.x = heli.position.x;
-    camera.position.y = heli.position.y;
-    camera.position.z = heli.position.z;
-    camera_target = heli.route[(heli.destination+2)%heli.route.length];
-    camera.lookAt(camera_target);
+    camera.position = heli.model.position.clone();
+    camera.rotation = heli.model.rotation.clone();
+    // Rotate camera so it faces the front
+    camera.rotation.setY(camera.rotation.y+Math.PI);
+    camera.rotation.setZ(-camera.rotation.z);
   }
   
   renderer.render( scene, camera );
@@ -257,8 +259,13 @@ setInterval(function() {
   if(keyboard.pressed("h")) {
     helicam = !helicam;
     heli.model.visible = !heli.model.visible;
+    if(helicam) {
+      camera_oldpos = camera.position;
+    }
     if(!helicam) {
+      camera.position = camera_oldpos;
       camera_target = new THREE.Vector3(0,0,0);
+      camera.lookAt(camera_target);
     }
   }
   

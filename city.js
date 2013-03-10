@@ -52,7 +52,6 @@ City = {
 
   randomBuilding: function() {
     var newbuilding = new Building(this.scene, this.block.width, this.block.depth, this.block.height);
-    //console.log(newbuilding);
     return newbuilding;
   },
 
@@ -121,7 +120,7 @@ function Building(scene, max_width, max_depth, max_height) {
     
     remaining_x = this.avail_width-w;
     remaining_z = this.avail_depth-d;
-    //offset_x = 
+    
     x = Math.round((Math.random() * remaining_x) - (remaining_x/2));
     z = Math.round((Math.random() * remaining_z) - (remaining_z/2));
     
@@ -139,26 +138,6 @@ function Building(scene, max_width, max_depth, max_height) {
     
     this.parts.push(part);
   }
-  
-  /*this.parts = [
-    {
-      width: 80,
-      height: 154,
-      depth: 80,
-      x: 0,
-      y: 77,
-      z: -10
-    }, {
-      width: 80,
-      height: 168,
-      depth: 100,
-      x: 0,
-      y: 84,
-      z: 0
-    }
-  ];*/
-  
-  //console.log(this.parts);
   
   for(var i=0; i<this.parts.length; i++) {
     part = this.parts[i];
@@ -273,8 +252,6 @@ Building.prototype.getBuildingMesh = function () {
   for(var i=0; i<combined.faces.length; i++) {
     var face = combined.faces[i];
     
-    //console.log("Face #"+i);
-    //console.log(face);
     var face_width = 0;
     var face_height = 0;
     
@@ -301,8 +278,6 @@ Building.prototype.getBuildingMesh = function () {
     
     }
    
-    //console.log("Pushing texture for face %i @ %ix%i:", i, face_width, face_height);
-    //console.log(texture);
     face.materialIndex = i; /* And make sure we set the face to use the appropriate materialIndex (merged geometries apparently maintain their original materiaIndex, so without this step all of the building parts' faces only point at the first six textures!) */
   }
   
@@ -318,11 +293,9 @@ Building.prototype.moveFaceEdgeTo = function (mesh, faceindex, dim, source, targ
     var vertex_label = vertex_labels[v];
     var vertex = mesh.vertices[face[vertex_label]];
     if(vertex[dim] == source) {
-      //console.log(vertex_label, vertex);
       var newvertex = new THREE.Vector3(vertex.x,vertex.y,vertex.z);
       newvertex[dim] = target;
       var newindex = mesh.vertices.push(newvertex)-1;
-      //console.log("Reassigning face's vertex", vertex_label, dim, "from vertex", face[vertex_label], mesh.vertices[face[vertex_label]], "to vertex", newindex, newvertex);
       face[vertex_label] = newindex;
     }
   }
@@ -350,23 +323,6 @@ Building.prototype.getWallTexture = function (width, height) {
   
   var ctx = canvas.getContext('2d');
 
-  //ctx.fillStyle = "#ffd000";
-/*  for(var i=0; i<width; i=i+5) {
-    for(var j=0; j<height; j=j+10) {
-      ctx.fillStyle = "#"+(this.colour-0x0f0f0f).toString(16);
-      ctx.fillRect(i-1, j-1, 3, 4);
-      ctx.fillStyle = "#"+(this.colour+0x0f0f0f).toString(16);
-      ctx.fillRect(i+1, j+1, 2, 3);
-      if(Math.round(Math.random() * 4) == 1) {
-          ctx.fillStyle = "#ffd000";
-      }
-      else {
-        ctx.fillStyle = "#"+(this.colour-0x1f1f1f).toString(16);
-      }
-      ctx.fillRect(i, j, 2, 3);
-    }
-  }*/
-
   for(var i=0; i<width; i=i+10) {
     for(var j=0; j<height; j=j+7) {
       ctx.fillStyle = "#"+(this.colour+0x0f0f0f).toString(16);
@@ -387,9 +343,8 @@ Building.prototype.getWallTexture = function (width, height) {
   }
   
   var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
-  texture.repeat.x = width/canvas.width; /* Need to find a way to make the texture tile as if it has a fixed size, rather than stretched/scaled to a multiple of each dimension of the object */
+  texture.repeat.x = width/canvas.width;
   texture.repeat.y = height/canvas.height;
-  //console.log("     = texture scaling factor: %ix%i = %ix%i", texture.repeat.x, texture.repeat.y, texture.repeat.x*canvas.width, texture.repeat.y*canvas.height);
   texture.needsUpdate = true;
   return texture;
 };
@@ -429,9 +384,8 @@ Building.prototype.getConcreteTexture = function (width, height, colour) {
   }
   
   var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
-  texture.repeat.x = width/canvas.width; /* Need to find a way to make the texture tile as if it has a fixed size, rather than stretched/scaled to a multiple of each dimension of the object */
+  texture.repeat.x = width/canvas.width;
   texture.repeat.y = height/canvas.height;
-  //console.log("     = texture scaling factor: %ix%i = %ix%i", texture.repeat.x, texture.repeat.y, texture.repeat.x*canvas.width, texture.repeat.y*canvas.height);
   texture.needsUpdate = true;
   return texture;
 };

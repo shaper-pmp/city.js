@@ -28,10 +28,13 @@ function Helicopter(scene, showPath, showSpotLightPointer) {
   this.destination = 1;
   this.prev_destination = 0;
   this.position = new THREE.Vector3(this.route[this.prev_destination].x, this.route[this.prev_destination].y, this.route[this.prev_destination].z);
+  this.orientationTarget = new THREE.Vector3(0,0,0);
+  this.orientationStep = new THREE.Vector3(0,0,0);
   this.dimensions = new THREE.Vector3(6, 6, 12);
   this.colour = 0x0000f0;
   
   this.speed = 10;
+  this.turnSpeed = 5;
   
   this.model = new THREE.Object3D();
   this.spotLight = null;        // Pointer to spotlight (child of model) for convenience when targeting spotlight
@@ -108,6 +111,9 @@ Helicopter.prototype.init = function () {
   this.model.translateX(this.position.x);
   this.model.translateY(this.position.y);
   this.model.translateZ(this.position.z);
+  
+  // Point it at its first destination
+  this.model.lookAt(this.route[1]);
 
   /* Add model to scene */
   this.scene.add(this.model);
@@ -120,36 +126,81 @@ Helicopter.prototype.init = function () {
   this.spotLightTarget.translateY(this.position.y-10);
   this.spotLightTarget.translateZ(this.position.z);
   this.scene.add(this.spotLightTarget);
+  
+  //console.log(this.model.up);
 };
 
 /* Move the helicopter one step along its path to its next destination (route node) */
 Helicopter.prototype.step = function() {
-  //console.log("Destination: %i", this.destination, this.route[this.destination]);
+  
+  var mod_pi = function (vector3) {
+    vector3 = vector3.clone();
+    if(vector3.x > Math.PI) {
+      vector3.setX((vector3.x%Math.PI)-Math.PI);
+    }
+    if(vector3.x < -Math.PI) {
+      vector3.setX((vector3.x%Math.PI)+Math.PI);
+    }
+    if(vector3.y > Math.PI) {
+      vector3.setY((vector3.y%Math.PI)-Math.PI);
+    }
+    if(vector3.y < -Math.PI) {
+      vector3.setY((vector3.y%Math.PI)+Math.PI);
+    }
+    if(vector3.z > Math.PI) {
+      vector3.setZ((vector3.z%Math.PI)-Math.PI);
+    }
+    if(vector3.z < -Math.PI) {
+      vector3.setZ((vector3.z%Math.PI)+Math.PI);
+    }
+    return vector3;
+  };
+
   var from = this.route[this.prev_destination];
   var to = this.route[this.destination];
 
-  //console.log("From (%i):", this.prev_destination, from);
-  //console.log("To (%i):", this.destination, to);
-
   var diff = to.clone();
   diff.sub(this.position);
-  //console.log("Diff: ", diff);
   
   var move = to.clone();
   move.sub(from);
   move.divideScalar(100/this.speed);
-  //console.log("Move: ", move);  
   
   if(Math.abs(diff.x) <= Math.abs(move.x) && Math.abs(diff.z) <= Math.abs(move.z) && Math.abs(diff.y) <= Math.abs(move.y)) {
     move = diff.clone();  /* Just move the object the required remaining distance to exactly hit its previous destination, to make the maths easier */ 
     this.prev_destination = this.destination;
     this.destination = (this.destination + 1) % this.route.length;
     
-    this.model.lookAt(this.route[this.destination]);
-    //console.log("Retargeting to destination %i", this.destination);
+    var pos = this.model.matrix.clone();
+    pos.lookAt(this.route[this.destination], this.model.position, this.model.up);
+    var destbearing = new THREE.Vector3();
+    destbearing.setEulerFromRotationMatrix(pos);
     
+    destbearing = mod_pi(destbearing);
+    
+    this.orientationTarget = destbearing.clone();
+    
+    this.orientationStep = destbearing.clone();
+    this.orientationStep.sub(this.model.rotation);
+    this.orientationStep = mod_pi(this.orientationStep);
+    
+    this.orientationStep.divideScalar(100/this.turnSpeed);
+    
+    console.log("NEW:", "from", this.model.rotation.x, "to", this.orientationTarget.x, "by", this.orientationStep.x);
   }
-
+  
+  var orientationDiff = this.orientationTarget.clone();
+  orientationDiff.sub(this.model.rotation);
+  orientationDiff = mod_pi(orientationDiff);
+  if(Math.abs(orientationDiff.x) <= Math.abs(this.orientationStep.x) && Math.abs(orientationDiff.y) <= Math.abs(this.orientationStep.y) && Math.abs(orientationDiff.z) <= Math.abs(this.orientationStep.z)) {
+    console.log("SNAP TO:", this.orientationTarget.x, 0);
+    this.model.rotation = this.orientationTarget.clone();
+    this.orientationStep = new THREE.Vector3(0,0,0);
+  }
+  
+  console.log("Step:", this.model.rotation.x, "+", this.orientationStep.x);
+  this.model.rotation.add(this.orientationStep);
+  this.model.rotation = mod_pi(this.model.rotation);
   this.position.add(move);
   this.model.position.add(move);
   this.spotLightTarget.position.add(move);
