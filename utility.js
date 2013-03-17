@@ -9,7 +9,7 @@ var Utility = {
   
   canvasElement: null,
   
-  getCanvasContext: function(width, height, backgroundColour) {
+  getCanvasTexture: function(width, height, backgroundColour) {
     // Procedurally generate a texture from a canvas element
     var canvas = document.createElement('canvas');
     canvas.width = width;

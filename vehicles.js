@@ -186,19 +186,19 @@ Helicopter.prototype.step = function() {
     
     this.orientationStep.divideScalar(100/this.turnSpeed);
     
-    console.log("NEW:", "from", this.model.rotation.x, "to", this.orientationTarget.x, "by", this.orientationStep.x);
+    //console.log("NEW:", "from", this.model.rotation.x, "to", this.orientationTarget.x, "by", this.orientationStep.x);
   }
   
   var orientationDiff = this.orientationTarget.clone();
   orientationDiff.sub(this.model.rotation);
   orientationDiff = mod_pi(orientationDiff);
   if(Math.abs(orientationDiff.x) <= Math.abs(this.orientationStep.x) && Math.abs(orientationDiff.y) <= Math.abs(this.orientationStep.y) && Math.abs(orientationDiff.z) <= Math.abs(this.orientationStep.z)) {
-    console.log("SNAP TO:", this.orientationTarget.x, 0);
+    //console.log("SNAP TO:", this.orientationTarget.x, 0);
     this.model.rotation = this.orientationTarget.clone();
     this.orientationStep = new THREE.Vector3(0,0,0);
   }
   
-  console.log("Step:", this.model.rotation.x, "+", this.orientationStep.x);
+  //console.log("Step:", this.model.rotation.x, "+", this.orientationStep.x);
   this.model.rotation.add(this.orientationStep);
   this.model.rotation = mod_pi(this.model.rotation);
   this.position.add(move);
