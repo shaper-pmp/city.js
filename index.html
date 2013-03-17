@@ -21,18 +21,13 @@ body {
     <script type="text/javascript">
 
 var camera, scene, renderer;
-var geometry, material, mesh;
 var keyboard;
 var camera_target = new THREE.Vector3( 0, 0, 0 );
 var camera_oldpos = null;
 
-var camera, scene, renderer,
-isMouseDown = false, onMouseDownPosition,
-radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
+var isMouseDown = false, onMouseDownPosition, radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
 
-var heli;
-var autoheli = false;
-var helicam = false;
+var heli, autoheli = false, helicam = false;
 
 var axes = null;
 
@@ -59,169 +54,42 @@ function init() {
   
   City.init(scene, 5, 5);
   
-  for(var x=0; x<City.width_blocks; x++) {
-    for(var z=0;z<City.depth_blocks; z++) {
-      
-      var building = City.buildings[x][z];
-
-			var blockoffset = City.blockOffsetByIndex(x, z);
-			      
-      /* Building */
-      mesh = building.getBuildingMesh();
-      
-      mesh.translateX(blockoffset.x - (City.width/2));
-      mesh.translateZ(blockoffset.z - (City.depth/2));
-			mesh.receiveShadow = true;
-      scene.add( mesh );
-      
-      /* Ground */
-      ground_mesh = building.getGroundMesh();
-      
-      ground_mesh.translateX(blockoffset.x - (City.width/2));
-      ground_mesh.translateZ(blockoffset.z - (City.depth/2));
-      ground_mesh.translateY(0);
-      scene.add( ground_mesh );
-      
-      /* Roads */
-      if(x < City.width_blocks-1) {
-        mesh = new THREE.Mesh(
-                              new THREE.CubeGeometry(City.road_width, 1, City.block.width+(City.road_width*2)),
-                              new THREE.MeshPhongMaterial( { color: 0x101010, wireframe: false } )
-                             );
-        mesh.translateX(blockoffset.x + (City.block.width/2) + (City.road_width/2) - (City.width/2));
-        mesh.translateZ(blockoffset.z - (City.depth/2));
-        mesh.translateY(-0.5);
-				mesh.receiveShadow = true;
-        scene.add( mesh );
-      }
-      if(z < City.depth_blocks-1) {
-        mesh = new THREE.Mesh(
-                              new THREE.CubeGeometry(City.block.depth+(City.road_width*2), 1, City.road_width),
-                              new THREE.MeshPhongMaterial( { color: 0x101010, wireframe: false } )
-                             );
-        mesh.translateX(blockoffset.x - (City.width/2));
-        mesh.translateZ(blockoffset.z + (City.block.depth/2) + (City.road_width/2) - (City.depth/2));
-        mesh.translateY(-0.5);
-				mesh.receiveShadow = true;
-        scene.add( mesh );
-      }
-      
-      /* Streetlights */
-			
-			var streetlights = [];
-			
-      if(z != 0 || x != 0) {
-        streetlights.push([
-          new THREE.Vector3(blockoffset.x - (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.block.depth/2) - (City.depth/2)),
-          new THREE.Vector3(0, -Math.PI/4, 0)
-        ]);
-      }
-      if(z != 0) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x - (City.width/2), 0, blockoffset.z - (City.block.depth/2) - (City.depth/2)),
-          new THREE.Vector3(0, -Math.PI/2, 0)
-        ]);
-      }
-      if(z != 0 || x != City.width_blocks-1) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x + (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.block.depth/2) - (City.depth/2)),
-          new THREE.Vector3(0, -Math.PI*3/4, 0)
-        ]);
-      }
-      
-      if(x != 0) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x - (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.depth/2)),
-          new THREE.Vector3(0, 0, 0)
-        ]);
-      }
-      if(x != City.width_blocks-1) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x + (City.block.width/2) - (City.width/2), 0, blockoffset.z - (City.depth/2)),
-          new THREE.Vector3(0, Math.PI, 0)
-        ]);
-      }
-        
-      if(z != City.depth_blocks-1 || x != 0) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x - (City.block.width/2) - (City.width/2), 0, blockoffset.z + (City.block.depth/2) - (City.depth/2)),
-          new THREE.Vector3(0, Math.PI/4, 0)
-        ]);
-      }
-      if(z != City.depth_blocks-1) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x - (City.width/2), 0, blockoffset.z + (City.block.depth/2) - (City.depth/2)),
-          new THREE.Vector3(0, Math.PI/2, 0)
-        ]);
-      }
-      if(z != City.depth_blocks-1 || x != City.width_blocks-1) {
-				streetlights.push([
-          new THREE.Vector3(blockoffset.x + (City.block.width/2) - (City.width/2), 0, blockoffset.z + (City.block.depth/2) - (City.depth/2)),
-          new THREE.Vector3(0, Math.PI*3/4, 0)
-        ]);
-      }
-			
-			for(var i=0; i<streetlights.length; i++) {
-				placeholder = City.getStreetlightMesh(
-          streetlights[i][0],
-          streetlights[i][1]
-        );
-        scene.add(placeholder);
-			}
-			
-			if(x > 0 && z > 0) {
-				/*var fake_streetlamp = new THREE.PointLight( 0xffd000, 1, 60);
-				fake_streetlamp.position.set(blockoffset.x - (City.block.width/2) - (City.road_width/2) - (City.width/2), 5, blockoffset.z - (City.block.depth/2) - (City.road_width/2) - (City.depth/2));
-        scene.add(fake_streetlamp);*/
-				
-				/*placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: false }));
-        placeholder.translateX(blockoffset.x - (City.block.width/2) - (City.road_width/2) - (City.width/2));
-        placeholder.translateY(10);
-        placeholder.translateZ(blockoffset.z - (City.block.depth/2) - (City.road_width/2) - (City.depth/2));
-        scene.add(placeholder);*/
-
-			}
-			
-
-    }
-  }
-  
   // Lights
 
   ambientLight = new THREE.AmbientLight( 0x101010 );
-  scene.add( ambientLight );
+  scene.add(ambientLight);
   
   directionalLight = new THREE.DirectionalLight( 0xc0c0c0 );
   directionalLight.position.set( 100, 50, 10 ).normalize();
-  scene.add( directionalLight );
+  scene.add(directionalLight);
   
   hemiLight = new THREE.HemisphereLight(0x000000, 0xffd000, 0.4);
-  /*hemiLight.color = 0xff0000;;
-  hemiLight.groundColor = 0xffd000;*/
   hemiLight.position.set(0, 10, 0);
-  scene.add(hemiLight); 
+  scene.add(hemiLight);
   
+  // Add vehicles
+  heli = new Helicopter(scene, false);
+  
+  // Set up renderer and canvas element and attach it to DOM  
   //renderer = new THREE.CanvasRenderer();
   renderer = new THREE.WebGLRenderer({
     antialias		: true,	// to get smoother output
   });
-	renderer.shadowMapSoft		= true;
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  
+	renderer.shadowMapSoft = true;
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Controls
   onMouseDownPosition = new THREE.Vector2();
   
-  document.body.appendChild( renderer.domElement );
-  
-  document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-  document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-  document.addEventListener( 'mouseup', onDocumentMouseUp, false ); 
+  document.addEventListener('mousemove', onDocumentMouseMove, false);
+  document.addEventListener('mousedown', onDocumentMouseDown, false);
+  document.addEventListener('mouseup', onDocumentMouseUp, false);
 
-  document.addEventListener( 'mousewheel', onDocumentMouseWheel, false ); 
-  document.addEventListener( 'wheel', onDocumentMouseWheel, false ); 
+  document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+  document.addEventListener('wheel', onDocumentMouseWheel, false);
 
   keyboard = new THREEx.KeyboardState();
-  
-  heli = new Helicopter(scene, false);
 }
 
 

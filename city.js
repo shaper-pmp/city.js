@@ -36,7 +36,130 @@ City = {
     for(var x=0; x<this.width_blocks; x++) {
       this.buildings.push(new Array(z));
       for(var z=0;z<this.depth_blocks; z++) {
-        this.buildings[x][z] = this.randomBuilding();
+        
+        var building = this.randomBuilding(); // Create new random building
+        this.buildings[x][z] = building;      // Push building into the City building array
+        
+        var blockoffset = this.blockOffsetByIndex(x, z);
+        
+        var centrepoint = {
+          x: blockoffset.x - (this.width/2),
+          z: blockoffset.z - (this.depth/2)
+        };
+        
+        /* Building */
+        building_mesh = building.getBuildingMesh();
+        building_mesh.translateX(centrepoint.x);
+        building_mesh.translateZ(centrepoint.z);
+        scene.add(building_mesh);
+        
+        /* Ground */
+        ground_mesh = building.getGroundMesh();
+        ground_mesh.translateX(centrepoint.x);
+        ground_mesh.translateZ(centrepoint.z);
+        scene.add(ground_mesh);
+        
+        /* Roads */
+        if(x < this.width_blocks-1) {
+          mesh = new THREE.Mesh(
+            new THREE.CubeGeometry(this.road_width, 1, this.block.width+(this.road_width*2)),
+            new THREE.MeshPhongMaterial( { color: 0x101010, wireframe: false } )
+          );
+          mesh.translateX(centrepoint.x + (this.block.width/2) + (this.road_width/2));
+          mesh.translateZ(centrepoint.z);
+          mesh.translateY(-0.5);
+          mesh.receiveShadow = true;
+          scene.add( mesh );
+        }
+        if(z < this.depth_blocks-1) {
+          mesh = new THREE.Mesh(
+            new THREE.CubeGeometry(this.block.depth+(this.road_width*2), 1, this.road_width),
+            new THREE.MeshPhongMaterial( { color: 0x101010, wireframe: false } )
+          );
+          mesh.translateX(centrepoint.x);
+          mesh.translateZ(centrepoint.z + (this.block.depth/2) + (this.road_width/2));
+          mesh.translateY(-0.5);
+          mesh.receiveShadow = true;
+          scene.add( mesh );
+        }
+        
+        /* Streetlights */
+        
+        var streetlights = [];
+        
+        if(z != 0 || x != 0) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x - (this.block.width/2) - (this.width/2), 0, blockoffset.z - (this.block.depth/2) - (this.depth/2)),
+            new THREE.Vector3(0, -Math.PI/4, 0)
+          ]);
+        }
+        if(z != 0) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x - (this.width/2), 0, blockoffset.z - (this.block.depth/2) - (this.depth/2)),
+            new THREE.Vector3(0, -Math.PI/2, 0)
+          ]);
+        }
+        if(z != 0 || x != this.width_blocks-1) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x + (this.block.width/2) - (this.width/2), 0, blockoffset.z - (this.block.depth/2) - (this.depth/2)),
+            new THREE.Vector3(0, -Math.PI*3/4, 0)
+          ]);
+        }
+        
+        if(x != 0) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x - (this.block.width/2) - (this.width/2), 0, blockoffset.z - (this.depth/2)),
+            new THREE.Vector3(0, 0, 0)
+          ]);
+        }
+        if(x != this.width_blocks-1) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x + (this.block.width/2) - (this.width/2), 0, blockoffset.z - (this.depth/2)),
+            new THREE.Vector3(0, Math.PI, 0)
+          ]);
+        }
+          
+        if(z != this.depth_blocks-1 || x != 0) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x - (this.block.width/2) - (this.width/2), 0, blockoffset.z + (this.block.depth/2) - (this.depth/2)),
+            new THREE.Vector3(0, Math.PI/4, 0)
+          ]);
+        }
+        if(z != this.depth_blocks-1) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x - (this.width/2), 0, blockoffset.z + (this.block.depth/2) - (this.depth/2)),
+            new THREE.Vector3(0, Math.PI/2, 0)
+          ]);
+        }
+        if(z != this.depth_blocks-1 || x != this.width_blocks-1) {
+          streetlights.push([
+            new THREE.Vector3(blockoffset.x + (this.block.width/2) - (this.width/2), 0, blockoffset.z + (this.block.depth/2) - (this.depth/2)),
+            new THREE.Vector3(0, Math.PI*3/4, 0)
+          ]);
+        }
+        
+        for(var i=0; i<streetlights.length; i++) {
+          placeholder = this.getStreetlightMesh(
+            streetlights[i][0],
+            streetlights[i][1]
+          );
+          scene.add(placeholder);
+        }
+        
+        if(x > 0 && z > 0) {
+          /*var fake_streetlamp = new THREE.PointLight( 0xffd000, 1, 60);
+          fake_streetlamp.position.set(blockoffset.x - (this.block.width/2) - (this.road_width/2) - (this.width/2), 5, blockoffset.z - (this.block.depth/2) - (this.road_width/2) - (this.depth/2));
+          scene.add(fake_streetlamp);*/
+          
+          /*placeholder = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: false }));
+          placeholder.translateX(blockoffset.x - (this.block.width/2) - (this.road_width/2) - (this.width/2));
+          placeholder.translateY(10);
+          placeholder.translateZ(blockoffset.z - (this.block.depth/2) - (this.road_width/2) - (this.depth/2));
+          scene.add(placeholder);*/
+  
+        }
+        
+  
       }
     }
   },
@@ -170,6 +293,7 @@ Building.prototype = {
     }
     
     combined = this.resolveIntersectingFaces(combined);
+    combined.receiveShadow = true;
     return this.textureBuilding(combined);
   },
   
@@ -330,10 +454,10 @@ Building.prototype = {
   
     for(var i=0; i<width; i=i+10) {
       for(var j=0; j<height; j=j+7) {
-        ctx.fillStyle = "#"+(this.colour+0x0f0f0f).toString(16);
+        ctx.fillStyle = "#"+(this.colour-0x0f0f0f).toString(16);
         ctx.fillRect(i, j+1, 3, 4);
         ctx.fillRect(i+5, j+1, 3, 4);
-        ctx.fillStyle = "#"+(this.colour-0x0f0f0f).toString(16);
+        ctx.fillStyle = "#"+(this.colour+0x0f0f0f).toString(16);
         ctx.fillRect(i+1, j+2, 3, 4);
         ctx.fillRect(i+6, j+2, 3, 4);
         if(Math.round(Math.random() * 4) == 1) {
