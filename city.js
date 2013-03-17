@@ -112,9 +112,9 @@ function Building(scene, max_width, max_depth, max_height) {
     // Texture repeats horizontally every 10px, and vertically every 7px
     // So, to get textures to line up clamp values to nearest 1/10th of the available width and 1/7th of available height
   
-    w = this.quantiseValue(w, 10);
-    h = this.quantiseValue(h, 7);
-    d = this.quantiseValue(d, 10);
+    w = Utility.quantiseValue(w, 10);
+    h = Utility.quantiseValue(h, 7);
+    d = Utility.quantiseValue(d, 10);
     
     remaining_x = this.avail_width-w;
     remaining_z = this.avail_depth-d;
@@ -160,10 +160,6 @@ function Building(scene, max_width, max_depth, max_height) {
 };
 
 Building.prototype = {
-  quantiseValue: function(value, divisor) {
-    return Math.round(value/divisor) * divisor;
-  },
-  
   getBuildingMesh: function () {
     var combined = new THREE.Geometry();
     
@@ -332,9 +328,8 @@ Building.prototype = {
     height = height || 256;
     
     // Procedurally generate a texture from a canvas element
-    var concrete_texture = this.getConcreteTexture(width, height, this.colour);
-    var canvas = concrete_texture.image;
-    
+    var texture = this.getConcreteTexture(width, height, this.colour);
+    var canvas = texture.image;
     var ctx = canvas.getContext('2d');
   
     for(var i=0; i<width; i=i+10) {
@@ -356,10 +351,6 @@ Building.prototype = {
       }
     }
     
-    var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
-    texture.repeat.x = width/canvas.width;
-    texture.repeat.y = height/canvas.height;
-    texture.needsUpdate = true;
     return texture;
   },
 
@@ -373,34 +364,22 @@ Building.prototype = {
     colour = colour || this.colour;
     
     // Procedurally generate a texture from a canvas element
-    var canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    
+    var texture = Utility.getCanvasContext(width, height, colour);
+    var canvas = texture.image;
     var ctx = canvas.getContext('2d');
-  
-    ctx.fillStyle = "#"+colour.toString(16);
-    ctx.fillRect(0, 0, 128, 128);
     
     var basegreyscale = parseInt(colour.toString(16).substr(0,2), 16);
     
     for(var i=0; i<canvas.width; i++) {
       for(var j=0; j<canvas.height; j++) {
         alpha = 0.1;
-      
         var greyscaleval = Math.round(Math.random() * (0x7f/20)) + basegreyscale;
-        colour = (greyscaleval * 0x100) + greyscaleval;
-        colour = (colour * 0x100) + greyscaleval;
-      
+        colour = (greyscaleval * 0x10000) + (greyscaleval * 0x100) + greyscaleval;
         ctx.fillStyle = "#"+colour.toString(16);
         ctx.fillRect(i, j, 1, 1, alpha);
       }
     }
     
-    var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
-    texture.repeat.x = width/canvas.width;
-    texture.repeat.y = height/canvas.height;
-    texture.needsUpdate = true;
     return texture;
   },
 
@@ -409,15 +388,10 @@ Building.prototype = {
     height = height || 256;
   
     // Procedurally generate a texture from a canvas element
-    var canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
-    
+    var texture = Utility.getCanvasContext(width, height, this.colour);
+    var canvas = texture.image;
     var ctx = canvas.getContext('2d');
-  
-    ctx.fillStyle = "#"+this.colour.toString(16);
-    ctx.fillRect(0, 0, 256, 256);
-  
+    
     ctx.lineWidth = 1;
     ctx.strokeStyle = "#ff0000";
     ctx.beginPath();
@@ -430,12 +404,7 @@ Building.prototype = {
       ctx.lineTo(256, yunit*i);
     }
     ctx.stroke();
-  
-    var texture = new THREE.Texture(canvas, new THREE.UVMapping(), THREE.RepeatWrapping, THREE.RepeatWrapping);
-    texture.repeat.x = width/canvas.width; /* Need to find a way to make the texture tile as if it has a fixed size, rather than stretched/scaled to a multiple of each dimension of the object */
-    texture.repeat.y = height/canvas.height;
-    //console.log("     = texture scaling factor: %ix%i = %ix%i", texture.repeat.x, texture.repeat.y, texture.repeat.x*canvas.width, texture.repeat.y*canvas.height);
-    texture.needsUpdate = true;
+    
     return texture;
   }
 }
