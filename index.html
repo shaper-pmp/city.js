@@ -27,7 +27,7 @@ var camera_oldpos = null;
 
 var isMouseDown = false, onMouseDownPosition, radius = 1600, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
 
-var heli, autoheli = false, helicam = false;
+var heli, autoheli = true, helicam = false;
 
 var axes = null;
 
@@ -111,6 +111,7 @@ function animate() {
   renderer.render( scene, camera );
 }
 
+/* Quick hack for keyboard controls (no debounce, etc) */
 setInterval(function() {
   
   // Helicopter on/off/stepping
@@ -157,6 +158,8 @@ setInterval(function() {
   renderer.render( scene, camera );
 }, 100);
 
+
+/* Mouse controls */
 function onDocumentMouseDown( event ) {
   event.preventDefault();
   if(!helicam) {
