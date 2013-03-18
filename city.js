@@ -62,28 +62,40 @@ City = {
         
         /* Roads */
         if(x < this.width_blocks-1) {
-          var road_texture = this.getRoadTexture(this.road_width, this.block.width+(this.road_width*2), this.road_colour);
-          mesh = new THREE.Mesh(
-            new THREE.CubeGeometry(this.road_width, 1, this.block.width+(this.road_width*2)),
+          var road_texture = this.getRoadTexture(this.road_width, this.block.width, this.road_colour);
+          road_mesh = new THREE.Mesh(
+            new THREE.CubeGeometry(this.road_width, 1, this.block.width),
             new THREE.MeshPhongMaterial( { color: this.road_colour, wireframe: false, map: road_texture } )
           );
-          mesh.translateX(centrepoint.x + (this.block.width/2) + (this.road_width/2));
-          mesh.translateZ(centrepoint.z);
-          mesh.translateY(-0.5);
-          mesh.receiveShadow = true;
-          scene.add( mesh );
+          road_mesh.translateX(centrepoint.x + (this.block.width/2) + (this.road_width/2));
+          road_mesh.translateZ(centrepoint.z);
+          road_mesh.translateY(-0.5);
+          road_mesh.receiveShadow = true;
+          scene.add(road_mesh);
         }
         if(z < this.depth_blocks-1) {
-          var road_texture = this.getRoadTexture(this.block.depth+(this.road_width*2), this.road_width, this.road_colour);
-          mesh = new THREE.Mesh(
-            new THREE.CubeGeometry(this.block.depth+(this.road_width*2), 1, this.road_width),
+          var road_texture = this.getRoadTexture(this.block.depth, this.road_width, this.road_colour);
+          road_mesh = new THREE.Mesh(
+            new THREE.CubeGeometry(this.block.depth, 1, this.road_width),
             new THREE.MeshPhongMaterial( { color: this.road_colour, wireframe: false, map: road_texture } )
           );
-          mesh.translateX(centrepoint.x);
-          mesh.translateZ(centrepoint.z + (this.block.depth/2) + (this.road_width/2));
-          mesh.translateY(-0.5);
-          mesh.receiveShadow = true;
-          scene.add( mesh );
+          road_mesh.translateX(centrepoint.x);
+          road_mesh.translateZ(centrepoint.z + (this.block.depth/2) + (this.road_width/2));
+          road_mesh.translateY(-0.5);
+          road_mesh.receiveShadow = true;
+          scene.add(road_mesh);
+        }
+        if(x < this.width_blocks-1 && z < this.depth_blocks-1) {
+          var junction_texture = this.getJunctionTexture(this.road_width, this.road_width, this.road_colour);
+          junction_mesh = new THREE.Mesh(
+            new THREE.CubeGeometry(this.road_width, 1, this.road_width),
+            new THREE.MeshPhongMaterial( { color: this.road_colour, wireframe: false, map: junction_texture } )
+          );
+          junction_mesh.translateX(centrepoint.x + (this.block.width/2) + (this.road_width/2));
+          junction_mesh.translateZ(centrepoint.z + (this.block.depth/2) + (this.road_width/2));
+          junction_mesh.translateY(-0.5);
+          junction_mesh.receiveShadow = true;
+          scene.add(junction_mesh);
         }
         
         /* Streetlights */
@@ -216,31 +228,36 @@ City = {
     ctx.fillStyle = "#ffffff";
     dashlength = 5;
     dashspace = 5;
+    dashwidth = 1;
     if(width >= depth) {
-      //ctx.fillRect(0, (depth/2)-1, width, 2, 1);
       for(i=0; i<=width; i+=dashlength+dashspace) { // Dashed lines along road
-        ctx.fillRect(i, (depth/2)-1, dashlength, 2, 1);
+        ctx.fillRect(i, (depth/2)-1, dashlength, dashwidth, 1);
       }
+      ctx.fillRect(0, 0, dashwidth, depth, 1);
+      ctx.fillRect(2, depth/2, dashwidth, depth/2, 1);
+      
+      ctx.fillRect(width-dashwidth, 0, dashwidth, depth, 1);
+      ctx.fillRect(width-dashwidth-2, 0, dashwidth, depth/2, 1);
     }
     if(width <= depth) {
-      //ctx.fillRect((width/2)-1, 0, 2, depth, 1);
       for(i=0; i<=depth; i+=dashlength+dashspace) { // Dashed lines along road
-        ctx.fillRect((width/2)-1, i, 2, dashlength, 1);
+        ctx.fillRect((width/2)-1, i, dashwidth, dashlength, 1);
       }
+      ctx.fillRect(0, 0, width, dashwidth, 1);
+      ctx.fillRect(0, 2, width/2, dashwidth, 1);
+      
+      ctx.fillRect(0, depth-dashwidth, width, dashwidth, 1);
+      ctx.fillRect(width/2, depth-dashwidth-2, width/2, dashwidth, 1);
     }
     
-    ctx.fillStyle = "#"+colour.toString(16);
-    ctx.strokeStyle = '#ffffff';
-    ctx.fillRect(0, 0, this.road_width, this.road_width, 1);
-    
-    //ctx.moveTo();
-    
-    //ctx.strokeRect(0, 0, this.road_width, this.road_width, 1);
-    
-    ctx.fillRect(width-this.road_width, depth-this.road_width, this.road_width, this.road_width, 1);
-    
-    //ctx.strokeRect(width-this.road_width, depth-this.road_width, this.road_width, this.road_width, 1);
-    
+    return texture;
+  },
+  
+  getJunctionTexture: function(width, depth, colour) {
+    var texture = Utility.getCanvasTexture(width, depth, colour);
+    var canvas = texture.image;
+    var ctx = canvas.getContext('2d');
+
     return texture;
   }
 };
